@@ -16,6 +16,8 @@ use Yii;
  * @property integer $estado
  * @property string $telefono
  * @property string $correo
+ * @property string $authKey
+* @property string $accessToken
  *
  * @property Invitaciones[] $invitaciones
  * @property Estados $estado
@@ -23,8 +25,6 @@ use Yii;
  */
 class Usuario extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
 {
-    public $authKey;
-    public $accessToken;
     /**
      * @inheritdoc
      */
@@ -39,9 +39,9 @@ class Usuario extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     public function rules()
     {
         return [
-            [['nombre', 'usuario', 'contrasena', 'sexo'], 'required'],
+            [['nombre', 'usuario', 'contrasena', 'sexo', 'authKey', 'accessToken'], 'required'],
             [['estado'], 'integer'],
-            [['nombre', 'usuario', 'perfil', 'correo'], 'string', 'max' => 45],
+            [['nombre', 'usuario', 'perfil', 'correo', 'authKey', 'accessToken'], 'string', 'max' => 45],
             [['contrasena'], 'string', 'max' => 70],
             [['sexo'], 'string', 'max' => 1],
             [['telefono'], 'string', 'max' => 20],
@@ -64,6 +64,8 @@ class Usuario extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
             'estado' => 'Estado',
             'telefono' => 'Telefono',
             'correo' => 'Correo',
+            'authKey' => 'Auth Key',
+            'accessToken' => 'Access Token',
         ];
     }
 
@@ -105,12 +107,16 @@ class Usuario extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
 
     public static function findIdentityByAccessToken($token, $type = null)
     {
-        $usuario = Usuario::find()->where(['accessToken' => $toke])->one();
-        if ($usuario['accessToken'] !== null) {
-            return new static($usuario);
-        }
-        return null;
+        return static::findOne(['accessToken' => $token]);
     }
+    // public static function findIdentityByAccessToken($token, $type = null)
+    // {
+    //     $usuario = Usuario::find()->where(['accessToken' => $toke])->one();
+    //     if ($usuario['accessToken'] !== null) {
+    //         return new static($usuario);
+    //     }
+    //     return null;
+    // }
 
     public function getUsername(){
         return $this->usuario;

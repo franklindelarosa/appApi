@@ -4,51 +4,76 @@ namespace app\api\modules\v1\controllers;
 
 use Yii;
 use yii\filters\AccessControl;
+use yii\filters\auth\CompositeAuth;
 use yii\filters\auth\HttpBasicAuth;
+use yii\filters\auth\HttpBearerAuth;
+use yii\filters\auth\QueryParamAuth;
 use yii\rest\Controller;
-use app\api\modules\v1\models\Usuario;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+
+use app\api\modules\v1\models\Usuario;
+use app\api\modules\v1\models\Canchas;
+use app\api\modules\v1\models\Partidos;
+use app\api\modules\v1\models\Consulta;
+use app\api\modules\v1\models\Estados;
+use app\api\modules\v1\models\Invitados;
 
 class UsuarioController extends Controller
 {
 	public function behaviors()
     {
+        $behaviors = parent::behaviors();
+        $behaviors['authenticator'] = [
+            'class' => QueryParamAuth::className(),
+        ];
+        return $behaviors;
         // $behaviors = parent::behaviors();
         // $behaviors['authenticator'] = [
-        //     'class' => HttpBasicAuth::className(),
+        //     'class' => CompositeAuth::className(),
+        //     'authMethods' => [
+        //         HttpBasicAuth::className(),
+        //         HttpBearerAuth::className(),
+        //         QueryParamAuth::className(),
+        //     ],
         // ];
         // return $behaviors;
-        return [
-            'verbs' => [
-                'class' => VerbFilter::className(),
-                'actions' => [
-                    'crear' => ['post'],
-                ],
-            ],
-            'access' => [
-                'class' => AccessControl::className(),
-                // 'only' => ['index', 'logout'],
-                'rules' => [
-                    [
-                        'allow' => false,
-                        // 'actions' => ['index'],
-                        'roles' => ['?'],
-                    ],
-                    [
-                        'allow' => true,
-                        // 'actions' => ['index', 'logout'],
-                        'roles' => ['Administrador'],
-                    ],
-                ],
-            ],
-        ];
+        // return [
+        //     'verbs' => [
+        //         'class' => VerbFilter::className(),
+        //         'actions' => [
+        //             'crear' => ['post'],
+        //         ],
+        //     ],
+        //     'access' => [
+        //         'class' => AccessControl::className(),
+        //         // 'only' => ['index', 'logout'],
+        //         'rules' => [
+        //             [
+        //                 'allow' => false,
+        //                 // 'actions' => ['index'],
+        //                 'roles' => ['?'],
+        //             ],
+        //             [
+        //                 'allow' => true,
+        //                 // 'actions' => ['index', 'logout'],
+        //                 'roles' => ['Administrador'],
+        //             ],
+        //         ],
+        //     ],
+        // ];
     }
 
     public function actionListar()
     {
         \Yii::$app->response->format = 'json';
         return Usuario::find()->all();
+    }
+
+    public function actionListarCanchas()
+    {
+        \Yii::$app->response->format = 'jsonp';
+        return Canchas::find()->all();
     }
 
     public function actionIndex(){
@@ -61,7 +86,12 @@ class UsuarioController extends Controller
     */
     public function actionCrear()
     {
-    	\Yii::$app->response->format = 'json';
+    	// \Yii::$app->response->format = 'json';
+        if(Yii::$app->user->can('Administrador')){
+            return ['mensaje' => 'Eres Administrador'];
+        }else{
+            return ['mensaje' => 'Tú no eres Administrador, eres jugador'];
+        }
         if (Yii::$app->request->post()) {
             // return ['mensaje' => $_REQUEST];
             $model = new Usuario();
@@ -69,6 +99,8 @@ class UsuarioController extends Controller
             $model->correo = $_POST['correo'];
             $model->usuario = $_POST['correo'];
             $model->contrasena = sha1($_POST['contrasena']);
+            $model->accessToken = md5($_POST['contrasena']);
+            $model->authKey = md5($_POST['contrasena']);
             $model->sexo = $_POST['sexo'];
             $model->telefono = $_POST['telefono'];
             // $model->contrasena = sha1($model->contrasena);
@@ -80,9 +112,9 @@ class UsuarioController extends Controller
             if($model->save()){
                 // $role = Yii::$app->authManager->getRole($model->perfil);
                 // Yii::$app->authManager->assign($role, $model->id_usuario);
-                return ['respuesta' => '1', 'mensaje' => 'Guardado correctamente'];
+                return ['respuesta' => '1', 'mensaje' => 'Guardado correctamente'/*, 'auth' => Yii::$app->user->identity*/];
             }else{
-                return ['respuesta' => '2', 'mensaje' => 'No guardó'];
+                return ['respuesta' => '2', 'mensaje' => 'No guardó'/*, 'auth' => Yii::$app->user->identity*/];
             }
         } else {
             return ['respuesta' => '0', 'mensaje' => 'No se pudo guardar'];
