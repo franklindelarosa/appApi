@@ -11,6 +11,7 @@ use yii\filters\auth\QueryParamAuth;
 use yii\rest\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\db\Query;
 
 use app\api\modules\v1\models\Usuario;
 use app\api\modules\v1\models\Canchas;
@@ -27,6 +28,28 @@ class UsuarioController extends Controller
         $behaviors['authenticator'] = [
             'class' => QueryParamAuth::className(),
         ];
+        $behaviors['verbs'] = [
+            'class' => VerbFilter::className(),
+            'actions' => [
+                'listar-canchas' => ['post'],
+            ],
+        ];
+        $behaviors['access'] = [
+            'class' => AccessControl::className(),
+            // 'only' => ['index', 'logout'],
+            'rules' => [
+                [
+                    'allow' => false,
+                    // 'actions' => ['index'],
+                    'roles' => ['?'],
+                ],
+                [
+                    'allow' => true,
+                    // 'actions' => ['index', 'logout'],
+                    'roles' => ['Administrador'],
+                ],
+            ],
+        ];
         return $behaviors;
         // $behaviors = parent::behaviors();
         // $behaviors['authenticator'] = [
@@ -38,30 +61,6 @@ class UsuarioController extends Controller
         //     ],
         // ];
         // return $behaviors;
-        // return [
-        //     'verbs' => [
-        //         'class' => VerbFilter::className(),
-        //         'actions' => [
-        //             'crear' => ['post'],
-        //         ],
-        //     ],
-        //     'access' => [
-        //         'class' => AccessControl::className(),
-        //         // 'only' => ['index', 'logout'],
-        //         'rules' => [
-        //             [
-        //                 'allow' => false,
-        //                 // 'actions' => ['index'],
-        //                 'roles' => ['?'],
-        //             ],
-        //             [
-        //                 'allow' => true,
-        //                 // 'actions' => ['index', 'logout'],
-        //                 'roles' => ['Administrador'],
-        //             ],
-        //         ],
-        //     ],
-        // ];
     }
 
     public function actionListar()
@@ -72,8 +71,22 @@ class UsuarioController extends Controller
 
     public function actionListarCanchas()
     {
-        \Yii::$app->response->format = 'jsonp';
-        return Canchas::find()->all();
+        \Yii::$app->response->format = 'json';
+        // Resultado por queryBuilder:
+        $query = new Query;
+        $query->select('c.*')->distinct()->from('canchas c')->innerJoin('partidos p', 'p.id_cancha = c.id_cancha AND p.estado = :estado');
+        return $query->addParams([':estado' => Partidos::STATUS_DISPONIBLE])->all();
+
+        // Resultado por Data Access Object:
+        // $sql = "SELECT DISTINCT c.* FROM canchas c, partidos p WHERE c.id_cancha = p.id_cancha AND p.estado = 1";
+        // return Yii::$app->db->createCommand($sql)->queryAll();
+
+        // Resultado por ActiveRecords:
+        // return Canchas::find()->innerJoinWith([
+        //         'partidos' => function ($query){
+        //             $query->where('partidos.estado = 1');
+        //         }
+        //     ])->all();
     }
 
     public function actionIndex(){

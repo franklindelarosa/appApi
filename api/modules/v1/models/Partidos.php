@@ -1,6 +1,6 @@
 <?php
 
-namespace app\models;
+namespace app\api\modules\v1\models;
 
 use Yii;
 
@@ -23,6 +23,9 @@ use Yii;
  */
 class Partidos extends \yii\db\ActiveRecord
 {
+    const STATUS_DISPONIBLE = 1;
+    const STATUS_NO_DISPONIBLE = 2;
+    const STATUS_NO_CANCELADO = 3;
     /**
      * @inheritdoc
      */

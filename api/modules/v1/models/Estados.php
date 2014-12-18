@@ -1,6 +1,6 @@
 <?php
 
-namespace app\models;
+namespace app\api\modules\v1\models;
 
 use Yii;
 
@@ -73,6 +73,6 @@ class Estados extends \yii\db\ActiveRecord
      */
     public function getUsuarios()
     {
-        return $this->hasMany(Usuarios::className(), ['estado' => 'id_estado']);
+        return $this->hasMany(Usuario::className(), ['estado' => 'id_estado']);
     }
 }
