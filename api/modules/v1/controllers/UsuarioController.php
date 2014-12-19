@@ -34,22 +34,22 @@ class UsuarioController extends Controller
                 'listar-canchas' => ['post'],
             ],
         ];
-        $behaviors['access'] = [
-            'class' => AccessControl::className(),
-            // 'only' => ['index', 'logout'],
-            'rules' => [
-                [
-                    'allow' => false,
-                    // 'actions' => ['index'],
-                    'roles' => ['?'],
-                ],
-                [
-                    'allow' => true,
-                    // 'actions' => ['index', 'logout'],
-                    'roles' => ['Administrador'],
-                ],
-            ],
-        ];
+        // $behaviors['access'] = [
+        //     'class' => AccessControl::className(),
+        //     // 'only' => ['index', 'logout'],
+        //     'rules' => [
+        //         [
+        //             'allow' => false,
+        //             // 'actions' => ['index'],
+        //             'roles' => ['?'],
+        //         ],
+        //         [
+        //             'allow' => true,
+        //             // 'actions' => ['index', 'logout'],
+        //             'roles' => ['Administrador'],
+        //         ],
+        //     ],
+        // ];
         return $behaviors;
         // $behaviors = parent::behaviors();
         // $behaviors['authenticator'] = [
@@ -69,28 +69,53 @@ class UsuarioController extends Controller
         return Usuario::find()->all();
     }
 
+    //Regresa las canchas que tienen partidos por jugar (disponibles) ordenadas ascendentemente por el nombre
     public function actionListarCanchas()
     {
         \Yii::$app->response->format = 'json';
         // Resultado por queryBuilder:
         $query = new Query;
-        $query->select('c.*')->distinct()->from('canchas c')->innerJoin('partidos p', 'p.id_cancha = c.id_cancha AND p.estado = :estado');
-        return $query->addParams([':estado' => Partidos::STATUS_DISPONIBLE])->all();
+        $query->select('c.*')->distinct()->from("canchas c")->innerJoin("partidos p", "p.id_cancha = c.id_cancha AND p.estado = :estado");
+        return $query->addParams([':estado' => Partidos::STATUS_DISPONIBLE])->orderBy(['c.nombre' => SORT_ASC])->all();
 
         // Resultado por Data Access Object:
-        // $sql = "SELECT DISTINCT c.* FROM canchas c, partidos p WHERE c.id_cancha = p.id_cancha AND p.estado = 1";
-        // return Yii::$app->db->createCommand($sql)->queryAll();
+        // $sql = "SELECT DISTINCT c.* FROM canchas c, partidos p WHERE c.id_cancha = p.id_cancha AND p.estado = :estado";
+        // return Yii::$app->db->createCommand($sql)->bindValue(':estado', Partidos::STATUS_DISPONIBLE)->queryAll();
 
         // Resultado por ActiveRecords:
         // return Canchas::find()->innerJoinWith([
         //         'partidos' => function ($query){
-        //             $query->where('partidos.estado = 1');
+        //             $query->where('partidos.estado = :estado')->addParams([':estado' => Partidos::STATUS_DISPONIBLE]);
         //         }
         //     ])->all();
     }
 
-    public function actionIndex(){
-    	return $this->render('index');
+    //Recibe como parámetro el id de una cancha y lista los días de los partidos por jugar (disponibles)
+    //de esa cancha del mas cercano al mas lejano
+    public function actionCanchaDias(){
+        \Yii::$app->response->format = 'json';
+        //SELECT @@lc_time_names;
+        $sql = "SET lc_time_names = 'es_CO'";
+        Yii::$app->db->createCommand($sql)->execute();
+        $sql = "SELECT fecha, DATE_FORMAT(fecha, '%W %e %M') label FROM partidos WHERE estado = :estado AND id_cancha = :id_cancha ORDER BY fecha ASC ";
+        return Yii::$app->db->createCommand($sql)->bindValue(':estado', Partidos::STATUS_DISPONIBLE)
+        ->bindValue(':id_cancha', $_POST['cancha'])->queryAll();
+    }
+
+    //Recibe como parámetro el id de una cancha y la fecha para listar las horas de los partidos por jugar (disponibles)
+    //de esa cancha del partido mas cercano al mas lejano, total jugadores (blancos y negros) y cupo máximo de la cancha
+    public function actionCanchaHoras(){
+        \Yii::$app->response->format = 'json';
+        //SELECT @@lc_time_names;
+        $sql = "SET lc_time_names = 'es_CO'";
+        Yii::$app->db->createCommand($sql)->execute();
+        $sql = "SELECT hora, DATE_FORMAT(hora, '%r') label, blancos, negros, (blancos+negros) total FROM partidos WHERE estado = :estado AND id_cancha = :id_cancha AND fecha = :fecha ORDER BY hora ASC";
+        $result = Yii::$app->db->createCommand($sql)->bindValue(':estado', Partidos::STATUS_DISPONIBLE)
+        ->bindValue(':id_cancha', $_POST['cancha'])
+        ->bindValue(':fecha', $_POST['fecha'])->queryAll();
+        $sql = "SELECT cupo_max FROM canchas WHERE id_cancha = :id_cancha";
+        $cupo = Yii::$app->db->createCommand($sql)->bindValue(':id_cancha', $_POST['cancha'])->queryOne();
+        return ['cupo' => $cupo, 'result' => $result];
     }
 
     /**
