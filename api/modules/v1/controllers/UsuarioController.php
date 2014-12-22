@@ -66,7 +66,7 @@ class UsuarioController extends Controller
     public function actionListar()
     {
         \Yii::$app->response->format = 'json';
-        return Usuario::find()->all();
+        return ['status' => 'ok', 'data' => Usuario::find()->all()];
     }
 
     //Regresa las canchas que tienen partidos por jugar (disponibles) ordenadas ascendentemente por el nombre
@@ -76,7 +76,7 @@ class UsuarioController extends Controller
         // Resultado por queryBuilder:
         $query = new Query;
         $query->select('c.*')->distinct()->from("canchas c")->innerJoin("partidos p", "p.id_cancha = c.id_cancha AND p.estado = :estado");
-        return $query->addParams([':estado' => Partidos::STATUS_DISPONIBLE])->orderBy(['c.nombre' => SORT_ASC])->all();
+        return ['status' => 'ok', 'data' => $query->addParams([':estado' => Partidos::STATUS_DISPONIBLE])->orderBy(['c.nombre' => SORT_ASC])->all()];
 
         // Resultado por Data Access Object:
         // $sql = "SELECT DISTINCT c.* FROM canchas c, partidos p WHERE c.id_cancha = p.id_cancha AND p.estado = :estado";
@@ -98,24 +98,39 @@ class UsuarioController extends Controller
         $sql = "SET lc_time_names = 'es_CO'";
         Yii::$app->db->createCommand($sql)->execute();
         $sql = "SELECT fecha, DATE_FORMAT(fecha, '%W %e %M') label FROM partidos WHERE estado = :estado AND id_cancha = :id_cancha ORDER BY fecha ASC ";
-        return Yii::$app->db->createCommand($sql)->bindValue(':estado', Partidos::STATUS_DISPONIBLE)
-        ->bindValue(':id_cancha', $_POST['cancha'])->queryAll();
+        return ['status' => 'ok', 'data' => Yii::$app->db->createCommand($sql)->bindValue(':estado', Partidos::STATUS_DISPONIBLE)
+                ->bindValue(':id_cancha', $_POST['cancha'])->queryAll()];
     }
 
-    //Recibe como parámetro el id de una cancha y la fecha para listar las horas de los partidos por jugar (disponibles)
-    //de esa cancha del partido mas cercano al mas lejano, total jugadores (blancos y negros) y cupo máximo de la cancha
+    //Recibe como parámetro el id de una cancha y la fecha, para listar las horas de los partidos por jugar (disponibles)
+    //de esa cancha, del partido mas cercano al mas lejano, total jugadores (blancos y negros) y el cupo máximo de la cancha
+    //en la primera posición del JSON
+
+    //respuesta: [{status, data[{}], cupo_max}]
     public function actionCanchaHoras(){
         \Yii::$app->response->format = 'json';
         //SELECT @@lc_time_names;
-        $sql = "SET lc_time_names = 'es_CO'";
-        Yii::$app->db->createCommand($sql)->execute();
-        $sql = "SELECT hora, DATE_FORMAT(hora, '%r') label, blancos, negros, (blancos+negros) total FROM partidos WHERE estado = :estado AND id_cancha = :id_cancha AND fecha = :fecha ORDER BY hora ASC";
-        $result = Yii::$app->db->createCommand($sql)->bindValue(':estado', Partidos::STATUS_DISPONIBLE)
-        ->bindValue(':id_cancha', $_POST['cancha'])
-        ->bindValue(':fecha', $_POST['fecha'])->queryAll();
-        $sql = "SELECT cupo_max FROM canchas WHERE id_cancha = :id_cancha";
-        $cupo = Yii::$app->db->createCommand($sql)->bindValue(':id_cancha', $_POST['cancha'])->queryOne();
-        return ['cupo' => $cupo, 'result' => $result];
+        $transaction = \Yii::$app->db->beginTransaction();
+        $cupo = 'bad';
+        try {
+            $sql = "SET lc_time_names = 'es_CO'";
+            Yii::$app->db->createCommand($sql)->execute();
+            $sql = "SELECT hora, DATE_FORMAT(hora, '%r') label, blancos, negros, (blancos+negros) total FROM partidos WHERE estado = :estado AND id_cancha = :id_cancha AND fecha = :fecha ORDER BY hora ASC";
+            $result = Yii::$app->db->createCommand($sql)->bindValue(':estado', Partidos::STATUS_DISPONIBLE)
+            ->bindValue(':id_cancha', $_POST['cancha'])
+            ->bindValue(':fecha', $_POST['fecha'])->queryAll();
+            $sql = "SELECT cupo_max FROM canchas WHERE id_cancha = :id_cancha";
+            $cupo = Yii::$app->db->createCommand($sql)->bindValue(':id_cancha', $_POST['cancha'])->queryOne();
+            $response['status'] = 'ok'; $response['data'] = $result;
+        } catch (Exception $e) {
+            $response['status'] = 'bad';
+            $transaction->rollBack();
+        }
+        return [$response, $cupo];
+    }
+
+    public function actionJugadores(){
+
     }
 
     /**
@@ -132,6 +147,12 @@ class UsuarioController extends Controller
         }
         if (Yii::$app->request->post()) {
             // return ['mensaje' => $_REQUEST];
+            // $transaction = \Yii::$app->db->beginTransaction();
+            // try {
+            // } catch (Exception $e) {
+            //     $result['status'] = 'bad';
+            //     $transaction->rollBack();
+            // }
             $model = new Usuario();
             $model->nombre = $_POST['nombre'];
             $model->correo = $_POST['correo'];
