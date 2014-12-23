@@ -105,8 +105,8 @@ class UsuarioController extends Controller
     //Recibe como parámetro el id de una cancha y la fecha, para listar las horas de los partidos por jugar (disponibles)
     //de esa cancha, del partido mas cercano al mas lejano, total jugadores (blancos y negros) y el cupo máximo de la cancha
     //en la primera posición del JSON
-
-    //respuesta: [{status, data[{}], cupo_max}]
+    //
+    //Estructura de la Respuesta: [{status, data[{}], cupo_max}]
     public function actionCanchaHoras(){
         \Yii::$app->response->format = 'json';
         //SELECT @@lc_time_names;
@@ -119,7 +119,7 @@ class UsuarioController extends Controller
             $result = Yii::$app->db->createCommand($sql)->bindValue(':estado', Partidos::STATUS_DISPONIBLE)
             ->bindValue(':id_cancha', $_POST['cancha'])
             ->bindValue(':fecha', $_POST['fecha'])->queryAll();
-            $sql = "SELECT cupo_max FROM canchas WHERE id_cancha = :id_cancha";
+            $sql = "SELECT cupo_max cupo_maximo FROM canchas WHERE id_cancha = :id_cancha";
             $cupo = Yii::$app->db->createCommand($sql)->bindValue(':id_cancha', $_POST['cancha'])->queryOne();
             $response['status'] = 'ok'; $response['data'] = $result;
         } catch (Exception $e) {
@@ -129,54 +129,143 @@ class UsuarioController extends Controller
         return [$response, $cupo];
     }
 
-    public function actionJugadores(){
-
+    protected function buscarPartidoPorTiempo($cancha, $fecha, $hora){
+        $sql = "SELECT id_partido FROM partidos WHERE id_cancha = :id_cancha AND fecha = :fecha AND hora = :hora";
+        return Yii::$app->db->createCommand($sql)
+        ->bindValue(':id_cancha', $cancha)
+        ->bindValue(':fecha', $fecha)
+        ->bindValue(':hora', $hora)->queryScalar();
     }
 
-    /**
-    * Creates a new User model.
-    * @return json
-    */
-    public function actionCrear()
-    {
-    	// \Yii::$app->response->format = 'json';
-        if(Yii::$app->user->can('Administrador')){
-            return ['mensaje' => 'Eres Administrador'];
-        }else{
-            return ['mensaje' => 'Tú no eres Administrador, eres jugador'];
+    //Esta acción invoca a la función "buscarPartidoPorTiempo" para que le devuelva el id del partido y pueda regresar
+    //el listado de los jugadores (invitados y registrados) de ese partido.
+    //
+    //Estructura de la Respuesta:
+    //result[0] = blancos, result[1] = negros, result[0][0] = blancos registrados, result[0][1] = blancos invitados
+    //[[[{blancos - registrados}],[{blancos - invitados}]],[[{negros - registrados}],[{negros - invitados}]]]
+    public function actionEquipos(){
+        $id_partido = $this->buscarPartidoPorTiempo($_POST['cancha'], $_POST['fecha'], $_POST['hora']);
+        $transaction = \Yii::$app->db->beginTransaction();
+        try {
+            $sql = "CALL jugadoresEquipo('b',".$id_partido.")";
+            $equipos[0][0] = \Yii::$app->db->createCommand($sql)->queryAll();
+            $sql = "CALL invitadosEquipo('b',".$id_partido.")";
+            $equipos[0][1] = \Yii::$app->db->createCommand($sql)->queryAll();
+            $sql = "CALL jugadoresEquipo('n',".$id_partido.")";
+            $equipos[1][0] = \Yii::$app->db->createCommand($sql)->queryAll();
+            $sql = "CALL invitadosEquipo('n',".$id_partido.")";
+            $equipos[1][1] = \Yii::$app->db->createCommand($sql)->queryAll();
+            $sql = "SELECT c.cupo_max cupo_maximo FROM canchas c, partidos p WHERE p.id_partido = ".$id_partido." AND c.id_cancha = p.id_cancha" ;
+            $equipos[2] = \Yii::$app->db->createCommand($sql)->query();
+            $transaction->commit();
+            $equipos['status'] = 'ok';
+        } catch (Exception $e) {
+            $equipos['status'] = 'bad';
+            $transaction->rollBack();
         }
-        if (Yii::$app->request->post()) {
-            // return ['mensaje' => $_REQUEST];
-            // $transaction = \Yii::$app->db->beginTransaction();
-            // try {
-            // } catch (Exception $e) {
-            //     $result['status'] = 'bad';
-            //     $transaction->rollBack();
-            // }
-            $model = new Usuario();
-            $model->nombre = $_POST['nombre'];
-            $model->correo = $_POST['correo'];
-            $model->usuario = $_POST['correo'];
-            $model->contrasena = sha1($_POST['contrasena']);
-            $model->accessToken = md5($_POST['contrasena']);
-            $model->authKey = md5($_POST['contrasena']);
-            $model->sexo = $_POST['sexo'];
-            $model->telefono = $_POST['telefono'];
-            // $model->contrasena = sha1($model->contrasena);
-            // if($model->perfil === '' || $model->perfil === NULL){
-                $model->perfil = 'Jugador';
-                // $model->estado = '1';
-            // return $model->attributes;
-            // }
-            if($model->save()){
-                // $role = Yii::$app->authManager->getRole($model->perfil);
-                // Yii::$app->authManager->assign($role, $model->id_usuario);
-                return ['respuesta' => '1', 'mensaje' => 'Guardado correctamente'/*, 'auth' => Yii::$app->user->identity*/];
-            }else{
-                return ['respuesta' => '2', 'mensaje' => 'No guardó'/*, 'auth' => Yii::$app->user->identity*/];
+        \Yii::$app->response->format = 'json';
+        return $equipos;
+    }
+
+    //Esta acción verifica si el el correo y la contraseña enviados coincide con el de algún usuario registrado del
+    //sistema. Regresa status = 'ok' si existe, de lo contrario status = 'bad'
+    public function actionLogin()
+    {
+        $sql = "SELECT COUNT(*) FROM usuarios WHERE correo = :correo AND contrasena = :contrasena";
+        $total = Yii::$app->db->createCommand($sql)
+        ->bindValue(':correo', $_POST['correo'])
+        ->bindValue(':contrasena', sha1($_POST['contrasena']))->queryScalar();
+        if($total > 0){
+            return ['status' => 'ok'];
+        }else{
+            return ['status' => 'bad'];
+        }
+    }
+
+    //Esta acción permite registrar a un jugador, devuelve status = 'ok' si se pudo guardar, si no se pudo status = 'bad'
+    public function actionRegistrarPerfil()
+    {
+    	\Yii::$app->response->format = 'json';
+        // if(Yii::$app->user->can('Administrador')){
+        //     return ['mensaje' => 'Eres Administrador'];
+        // }else{
+        //     return ['mensaje' => 'Tú no eres Administrador, eres jugador'];
+        // }
+        $model = new Usuario();
+        $model->nombres = $_POST['nombres'];
+        $model->apellidos = $_POST['apellidos'];
+        $model->correo = $_POST['correo'];
+        $model->usuario = $_POST['correo'];
+        $model->contrasena = sha1($_POST['contrasena']);
+        $model->accessToken = $model->contrasena;
+        $model->telefono = $_POST['telefono'];
+        $model->sexo = $_POST['sexo'];
+        $model->perfil = 'Jugador';
+        if($model->save()){
+            $role = Yii::$app->authManager->getRole($model->perfil);
+            Yii::$app->authManager->assign($role, $model->id_usuario);
+            return ['status' => 'ok', 'mensaje' => 'Guardado correctamente', 'accessToken' => $model->accessToken];
+        }else{
+            return ['status' => 'bad', 'mensaje' => 'No guardó'/*, 'auth' => Yii::$app->user->identity*/];
+        }
+    }
+
+    //Esta acción recibe el id del partido, el equipo (blanco/negro) y los datos del invitado para registrarlo en el partido
+    public function actionRegistrarInvitado(){
+        $transaction = \Yii::$app->db->beginTransaction();
+        try {
+            $invitado = new Invitados();
+            $invitado->nombres = $_POST['nombres'];
+            $invitado->apellidos = $_POST['apellidos'];
+            $invitado->correo = $_POST['correo'];
+            $invitado->sexo = $_POST['sexo'];
+            $invitado->telefono = $_POST['telefono'];
+            if($invitado->save()){
+                $sql = "INSERT INTO invitaciones (id_usuario, id_invitado, equipo, id_partido) VALUES ('".Yii::$app->user->id."', '".$invitado->id_invitado."', '".strtolower(substr($_POST['equipo'],0,1))."', '".$_POST['partido']."')";
+                \Yii::$app->db->createCommand($sql)->execute();
+                $sql = "UPDATE partidos SET ".strtolower($_POST['equipo'])."s = (".strtolower($_POST['equipo'])."s+1) WHERE id_partido = ".$_POST['partido'];
+                \Yii::$app->db->createCommand($sql)->execute();
+                $result['mensaje'] = 'ok';
             }
+            $result['id'] = $invitado->id_invitado;
+            $transaction->commit();
+        } catch (Exception $e) {
+            $result['mensaje'] = 'bad';
+            $transaction->rollBack();
+        }
+        $result['nombre'] = $_POST['nombres']." ".$_POST['apellidos'];
+        \Yii::$app->response->format = 'json';
+        return $result;
+    }
+
+    //Esta acción permite actualizar el perfil de un jugador, devuelve status = 'ok' si se pudo guardar, si no se pudo status = 'bad'
+    public function actionActualizarPerfil()
+    {
+        $model = $this->findModel(Yii::$app->user->id);
+        $contrasena = $model->contrasena;
+        $model->nombres = $_POST['nombres'];
+        $model->apellidos = $_POST['apellidos'];
+        $model->correo = $_POST['correo'];
+        ($_POST['contrasena'] === '') ? $model->contrasena = $contrasena : $model->contrasena = sha1($_POST['contrasena']);
+        $model->usuario = $_POST['correo'];
+        $model->telefono = $_POST['telefono'];
+        $model->sexo = $_POST['sexo'];
+        // $model->accessToken = $model->contrasena;
+        // $model->perfil = 'Jugador';
+        if($model->save()){
+            return ['status' => 'ok', 'mensaje' => 'Actualizado correctamente'];
+        }else{
+            return ['status' => 'bad', 'mensaje' => 'No se pudo actualizar'/*, 'auth' => Yii::$app->user->identity*/];
+        }
+    }
+
+    //Esta función busca a un usuario por la primary key ($id)
+    protected function findModel($id)
+    {
+        if (($model = Usuario::findOne($id)) !== null) {
+            return $model;
         } else {
-            return ['respuesta' => '0', 'mensaje' => 'No se pudo guardar'];
+            throw new NotFoundHttpException('The requested page does not exist.');
         }
     }
 }

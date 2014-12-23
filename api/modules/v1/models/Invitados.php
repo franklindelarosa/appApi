@@ -31,8 +31,8 @@ class Invitados extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['nombre', 'telefono', 'sexo', 'correo'], 'required'],
-            [['nombre', 'correo'], 'string', 'max' => 45],
+            [['nombres', 'apellidos', 'telefono', 'sexo', 'correo'], 'required'],
+            [['nombres', 'apellidos', 'correo'], 'string', 'max' => 45],
             [['telefono'], 'string', 'max' => 20],
             [['sexo'], 'string', 'max' => 1]
         ];
@@ -45,7 +45,8 @@ class Invitados extends \yii\db\ActiveRecord
     {
         return [
             'id_invitado' => 'Id Invitado',
-            'nombre' => 'Nombre',
+            'nombres' => 'Nombres',
+            'apellidos' => 'Apellidos',
             'telefono' => 'Telefono',
             'sexo' => 'Sexo',
             'correo' => 'Correo',
