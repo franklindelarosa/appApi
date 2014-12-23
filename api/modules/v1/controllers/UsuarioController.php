@@ -259,6 +259,28 @@ class UsuarioController extends Controller
         }
     }
 
+    //Devuelve la información de un perfil con el último partido jugado
+    public function actionInfoPerfil(){
+        \Yii::$app->response->format = 'json';
+        $transaction = \Yii::$app->db->beginTransaction();
+        try {
+            $sql = "SELECT CONCAT(nombres, ' ', apellidos) nombre, correo, (if(sexo = 'f','Femenino','Masculino')) sexo, telefono FROM usuarios WHERE id_usuario = ".Yii::$app->user->id;
+            $user = \Yii::$app->db->createCommand($sql)->queryOne();
+            $result['data'] = $user;
+            $sql = "SET lc_time_names = 'es_CO'";
+            Yii::$app->db->createCommand($sql)->execute();
+            $sql = "SELECT p.fecha, DATE_FORMAT(p.fecha, '%W %e %M') label_fecha, p.hora, DATE_FORMAT(p.hora, '%r') label_hora FROM usuarios_partidos ut, partidos p WHERE ut.id_usuario = ".
+            Yii::$app->user->id." AND p.estado = 2 AND ut.id_partido = p.id_partido ORDER BY p.fecha DESC, p.hora DESC LIMIT 0,1";
+            $last = \Yii::$app->db->createCommand($sql)->queryOne();
+            $result['ultimo_partido'] = $last;
+            $transaction->commit();
+        } catch (Exception $e) {
+            $result['mensaje'] = 'bad';
+            $transaction->rollBack();
+        }
+        return $result;
+    }
+
     //Esta función busca a un usuario por la primary key ($id)
     protected function findModel($id)
     {
