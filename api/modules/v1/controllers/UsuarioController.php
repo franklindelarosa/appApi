@@ -22,46 +22,46 @@ use app\api\modules\v1\models\Invitados;
 
 class UsuarioController extends Controller
 {
-	public function behaviors()
-    {
-        $behaviors = parent::behaviors();
-        $behaviors['authenticator'] = [
-            'class' => QueryParamAuth::className(),
-        ];
-        $behaviors['verbs'] = [
-            'class' => VerbFilter::className(),
-            'actions' => [
-                'listar-canchas' => ['post'],
-            ],
-        ];
-        // $behaviors['access'] = [
-        //     'class' => AccessControl::className(),
-        //     // 'only' => ['index', 'logout'],
-        //     'rules' => [
-        //         [
-        //             'allow' => false,
-        //             // 'actions' => ['index'],
-        //             'roles' => ['?'],
-        //         ],
-        //         [
-        //             'allow' => true,
-        //             // 'actions' => ['index', 'logout'],
-        //             'roles' => ['Administrador'],
-        //         ],
-        //     ],
-        // ];
-        return $behaviors;
-        // $behaviors = parent::behaviors();
-        // $behaviors['authenticator'] = [
-        //     'class' => CompositeAuth::className(),
-        //     'authMethods' => [
-        //         HttpBasicAuth::className(),
-        //         HttpBearerAuth::className(),
-        //         QueryParamAuth::className(),
-        //     ],
-        // ];
-        // return $behaviors;
-    }
+	// public function behaviors()
+ //    {
+ //        $behaviors = parent::behaviors();
+ //        $behaviors['authenticator'] = [
+ //            'class' => QueryParamAuth::className(),
+ //        ];
+ //        $behaviors['verbs'] = [
+ //            'class' => VerbFilter::className(),
+ //            'actions' => [
+ //                'listar-canchas' => ['post'],
+ //            ],
+ //        ];
+ //        // $behaviors['access'] = [
+ //        //     'class' => AccessControl::className(),
+ //        //     // 'only' => ['index', 'logout'],
+ //        //     'rules' => [
+ //        //         [
+ //        //             'allow' => false,
+ //        //             // 'actions' => ['index'],
+ //        //             'roles' => ['?'],
+ //        //         ],
+ //        //         [
+ //        //             'allow' => true,
+ //        //             // 'actions' => ['index', 'logout'],
+ //        //             'roles' => ['Administrador'],
+ //        //         ],
+ //        //     ],
+ //        // ];
+ //        return $behaviors;
+ //        // $behaviors = parent::behaviors();
+ //        // $behaviors['authenticator'] = [
+ //        //     'class' => CompositeAuth::className(),
+ //        //     'authMethods' => [
+ //        //         HttpBasicAuth::className(),
+ //        //         HttpBearerAuth::className(),
+ //        //         QueryParamAuth::className(),
+ //        //     ],
+ //        // ];
+ //        // return $behaviors;
+ //    }
 
     public function actionListar()
     {
