@@ -216,6 +216,30 @@ class UsuarioController extends Controller
     //     }
     // }
 
+    //Esta acción añade el usuario al partido especificado
+    public function actionRegistrarUsuario(){
+        // parse_str($_POST['data'], $data);
+        $transaction = \Yii::$app->db->beginTransaction();
+        $user = Usuarios::findOne(Yii::$app->user->id);
+        try {
+            $sql = "INSERT INTO usuarios_partidos (id_usuario, id_partido, equipo) VALUES ('".Yii::$app->user->id."', '".$_POST['partido']."', '".substr($_POST['equipo'],0,1)."')";
+            \Yii::$app->db->createCommand($sql)->execute();
+            $sql = "UPDATE partidos SET ".$_POST['equipo']." = (".$_POST['equipo']."+1) WHERE id_partido = ".$_POST['partido'];
+            \Yii::$app->db->createCommand($sql)->execute();
+            $result['entidad'] = 'usuario';
+            $result['equipo'] = substr($_POST['equipo'],0,1);
+            $result['id'] = Yii::$app->user->id;
+            $result['nombre'] = $user->nombres." ".$user->apellidos;
+            $transaction->commit();
+            $status = 'ok';
+        } catch (Exception $e) {
+            $status = 'bad';
+            $transaction->rollBack();
+        }
+        \Yii::$app->response->format = 'json';
+        return ['status' => $status, 'data' => $result];
+    }
+
     //Esta acción recibe el id del partido, el equipo (blanco/negro) y los datos del invitado para registrarlo en el partido
     public function actionRegistrarInvitado(){
         $transaction = \Yii::$app->db->beginTransaction();
@@ -229,7 +253,7 @@ class UsuarioController extends Controller
             if($invitado->save()){
                 $sql = "INSERT INTO invitaciones (id_usuario, id_invitado, equipo, id_partido) VALUES ('".Yii::$app->user->id."', '".$invitado->id_invitado."', '".strtolower(substr($_POST['equipo'],0,1))."', '".$_POST['partido']."')";
                 \Yii::$app->db->createCommand($sql)->execute();
-                $sql = "UPDATE partidos SET ".strtolower($_POST['equipo'])."s = (".strtolower($_POST['equipo'])."s+1) WHERE id_partido = ".$_POST['partido'];
+                $sql = "UPDATE partidos SET ".strtolower($_POST['equipo'])." = (".strtolower($_POST['equipo'])."+1) WHERE id_partido = ".$_POST['partido'];
                 \Yii::$app->db->createCommand($sql)->execute();
                 $result['status'] = 'ok';
             }

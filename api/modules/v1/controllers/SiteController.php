@@ -144,13 +144,13 @@ class SiteController extends Controller
             $transaction->rollBack();
         }
         \Yii::$app->response->format = 'json';
-        return ['data' => $equipos, 'status' => $status];
+        return ['data' => $equipos, 'status' => $status, 'partido' => $id_partido];
     }
 
     //Esta acción verifica si el el correo y la contraseña enviados coincide con el de algún usuario registrado del
     //sistema. Regresa status = 'ok' y el accessToken si existe, de lo contrario status = 'bad'
     public function actionLogin()
-    {//En el local se guardó el accessToken como _chrome-rel-back
+    {//En el local se guardó el accessToken como _chrome-rel-back en el atributo rel
         $sql = "SELECT COUNT(*), accessToken FROM usuarios WHERE correo = :correo AND contrasena = :contrasena";
         $query = Yii::$app->db->createCommand($sql)
         ->bindValue(':correo', $_POST['correo'])
@@ -167,7 +167,7 @@ class SiteController extends Controller
     //Esta acción permite registrar a un jugador, devuelve status = 'ok' y el accessToken si se pudo guardar,
     //si no se pudo status = 'bad'
     public function actionRegistrarPerfil()
-    {//En el local se guardó el accessToken como _chrome-rel-back
+    {//En el local se guardó el accessToken como _chrome-rel-back en el atributo rel
     	\Yii::$app->response->format = 'json';
         // if(Yii::$app->user->can('Administrador')){
         //     return ['mensaje' => 'Eres Administrador'];
@@ -187,9 +187,9 @@ class SiteController extends Controller
         if($model->save()){
             $role = Yii::$app->authManager->getRole($model->perfil);
             Yii::$app->authManager->assign($role, $model->id_usuario);
-            return ['status' => 'ok', 'mensaje' => 'Guardado correctamente', 'accessToken' => $model->accessToken];
+            return ['status' => 'ok', 'key' => $model->accessToken];
         }else{
-            return ['status' => 'bad', 'mensaje' => 'No guardó'/*, 'auth' => Yii::$app->user->identity*/];
+            return ['status' => 'bad'/*, 'auth' => Yii::$app->user->identity*/];
         }
     }
 
