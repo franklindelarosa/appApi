@@ -32,6 +32,7 @@ class UsuarioController extends Controller
             'class' => VerbFilter::className(),
             'actions' => [
                 'quien-soy' => ['post'],
+                'sacar-jugador' => ['post'],
                 'registrar-invitado' => ['post'],
                 'actualizar-perfil' => ['post'],
                 'info-perfil' => ['post'],
@@ -70,6 +71,40 @@ class UsuarioController extends Controller
     public function actionQuienSoy(){
         \Yii::$app->response->format = 'json';
         return ['id' => Yii::$app->user->id];
+    }
+
+    //Esta acción elimina a un jugador de un partido, recibe el partido, el equipo, el id del jugador a sacar
+    //y la entidad del jugador a sacar (usuarios|invitado)
+    public function actionSacarJugador(){
+        if(isset($_POST['entidad']) && isset($_POST['equipo']) && isset($_POST['partido'])){
+            $transaction = \Yii::$app->db->beginTransaction();
+            try {
+                if($_POST['entidad'] === 'usuario'){
+                    $sql = "DELETE FROM usuarios_partidos WHERE id_partido = ".$_POST['partido']." AND id_usuario = ".Yii::$app->user->id;
+                    \Yii::$app->db->createCommand($sql)->execute();
+                    $sql = "SELECT id_invitado, equipo FROM invitaciones WHERE id_partido = ".$_POST['partido']." AND id_usuario = ".Yii::$app->user->id;
+                    $result['invitados'] = \Yii::$app->db->createCommand($sql)->queryAll();
+                    $sql = "DELETE FROM invitaciones WHERE id_partido = ".$_POST['partido']." AND id_usuario = ".Yii::$app->user->id;
+                    \Yii::$app->db->createCommand($sql)->execute();
+                    $sql = "UPDATE partidos SET ".$_POST['equipo']." = (".$_POST['equipo']."-1) WHERE id_partido = ".$_POST['partido'];
+                    \Yii::$app->db->createCommand($sql)->execute();
+                }else{
+                    if(isset($_POST['jugador'])){
+                        $sql = "DELETE FROM invitaciones WHERE id_partido = ".$_POST['partido']." AND id_invitado = ".$_POST['jugador'];
+                        \Yii::$app->db->createCommand($sql)->execute();
+                    }
+                }
+                // $transaction->commit();
+                $result['status'] = 'ok';
+                $result['equipo'] = $_POST['equipo'];
+            } catch (Exception $e) {
+                $result['status'] = 'bad';
+                $result['mensaje'] = $e->getMessage();
+                $transaction->rollBack();
+            }
+        }else{$result['status'] = 'bad';$result['mensaje'] = "Faltaron parámetros";}
+        \Yii::$app->response->format = 'json';
+        return $result;
     }
 
     //Esta acción añade el usuario al partido especificado
