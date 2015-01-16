@@ -76,7 +76,7 @@ class SiteController extends Controller
         //SELECT @@lc_time_names;
         $sql = "SET lc_time_names = 'es_CO'";
         Yii::$app->db->createCommand($sql)->execute();
-        $sql = "SELECT fecha, DATE_FORMAT(fecha, '%W %e %M') label FROM partidos WHERE estado = :estado AND id_cancha = :id_cancha ORDER BY fecha ASC ";
+        $sql = "SELECT DISTINCT fecha, DATE_FORMAT(fecha, '%W %e %M') label FROM partidos WHERE estado = :estado AND id_cancha = :id_cancha ORDER BY fecha ASC ";
         return ['status' => 'ok', 'data' => Yii::$app->db->createCommand($sql)->bindValue(':estado', Partidos::STATUS_DISPONIBLE)
                 ->bindValue(':id_cancha', $_POST['cancha'])->queryAll()];
     }
@@ -94,7 +94,7 @@ class SiteController extends Controller
         try {
             $sql = "SET lc_time_names = 'es_CO'";
             Yii::$app->db->createCommand($sql)->execute();
-            $sql = "SELECT hora, DATE_FORMAT(hora, '%r') label, blancos, negros, (blancos+negros) total FROM partidos WHERE estado = :estado AND id_cancha = :id_cancha AND fecha = :fecha ORDER BY hora ASC";
+            $sql = "SELECT hora, DATE_FORMAT(hora, '%r') label, blancos, negros, (blancos+negros) total, venta FROM partidos WHERE estado = :estado AND id_cancha = :id_cancha AND fecha = :fecha ORDER BY hora ASC";
             $result = Yii::$app->db->createCommand($sql)->bindValue(':estado', Partidos::STATUS_DISPONIBLE)
             ->bindValue(':id_cancha', $_POST['cancha'])
             ->bindValue(':fecha', $_POST['fecha'])->queryAll();
@@ -192,78 +192,6 @@ class SiteController extends Controller
             return ['status' => 'bad'/*, 'auth' => Yii::$app->user->identity*/];
         }
     }
-
-    // //Esta acción recibe el id del partido, el equipo (blanco/negro) y los datos del invitado para registrarlo en el partido
-    // public function actionRegistrarInvitado(){
-    //     $transaction = \Yii::$app->db->beginTransaction();
-    //     try {
-    //         $invitado = new Invitados();
-    //         $invitado->nombres = $_POST['nombres'];
-    //         $invitado->apellidos = $_POST['apellidos'];
-    //         $invitado->correo = $_POST['correo'];
-    //         $invitado->sexo = $_POST['sexo'];
-    //         $invitado->telefono = $_POST['telefono'];
-    //         if($invitado->save()){
-    //             $sql = "INSERT INTO invitaciones (id_usuario, id_invitado, equipo, id_partido) VALUES ('".Yii::$app->user->id."', '".$invitado->id_invitado."', '".strtolower(substr($_POST['equipo'],0,1))."', '".$_POST['partido']."')";
-    //             \Yii::$app->db->createCommand($sql)->execute();
-    //             $sql = "UPDATE partidos SET ".strtolower($_POST['equipo'])."s = (".strtolower($_POST['equipo'])."s+1) WHERE id_partido = ".$_POST['partido'];
-    //             \Yii::$app->db->createCommand($sql)->execute();
-    //             $result['status'] = 'ok';
-    //         }
-    //         $result['id'] = $invitado->id_invitado;
-    //         $transaction->commit();
-    //     } catch (Exception $e) {
-    //         $result['status'] = 'bad';
-    //         $transaction->rollBack();
-    //     }
-    //     $result['nombre'] = $_POST['nombres']." ".$_POST['apellidos'];
-    //     \Yii::$app->response->format = 'json';
-    //     return $result;
-    // }
-
-    // //Esta acción permite actualizar el perfil de un jugador, devuelve status = 'ok' si se pudo guardar, si no se pudo status = 'bad'
-    // public function actionActualizarPerfil()
-    // {
-    //     $model = $this->findModel(Yii::$app->user->id);
-    //     $contrasena = $model->contrasena;
-    //     $model->nombres = $_POST['nombres'];
-    //     $model->apellidos = $_POST['apellidos'];
-    //     $model->correo = $_POST['correo'];
-    //     ($_POST['contrasena'] === '') ? $model->contrasena = $contrasena : $model->contrasena = sha1($_POST['contrasena']);
-    //     $model->usuario = $_POST['correo'];
-    //     $model->telefono = $_POST['telefono'];
-    //     $model->sexo = $_POST['sexo'];
-    //     // $model->accessToken = $model->contrasena;
-    //     // $model->perfil = 'Jugador';
-    //     if($model->save()){
-    //         return ['status' => 'ok', 'mensaje' => 'Actualizado correctamente'];
-    //     }else{
-    //         return ['status' => 'bad', 'mensaje' => 'No se pudo actualizar'/*, 'auth' => Yii::$app->user->identity*/];
-    //     }
-    // }
-
-    // //Devuelve la información de un perfil con el último partido jugado
-    // public function actionInfoPerfil(){
-    //     \Yii::$app->response->format = 'json';
-    //     $transaction = \Yii::$app->db->beginTransaction();
-    //     try {
-    //         $sql = "SELECT CONCAT(nombres, ' ', apellidos) nombre, correo, (if(sexo = 'f','Femenino','Masculino')) sexo, telefono FROM usuarios WHERE id_usuario = ".Yii::$app->user->id;
-    //         $user = \Yii::$app->db->createCommand($sql)->queryOne();
-    //         $result['data'] = $user;
-    //         $sql = "SET lc_time_names = 'es_CO'";
-    //         Yii::$app->db->createCommand($sql)->execute();
-    //         $sql = "SELECT p.fecha, DATE_FORMAT(p.fecha, '%W %e %M') label_fecha, p.hora, DATE_FORMAT(p.hora, '%r') label_hora FROM usuarios_partidos ut, partidos p WHERE ut.id_usuario = ".
-    //         Yii::$app->user->id." AND p.estado = 2 AND ut.id_partido = p.id_partido ORDER BY p.fecha DESC, p.hora DESC LIMIT 0,1";
-    //         $last = \Yii::$app->db->createCommand($sql)->queryOne();
-    //         $result['ultimo_partido'] = $last;
-    //         $transaction->commit();
-    //         $result['mensaje'] = 'ok';
-    //     } catch (Exception $e) {
-    //         $result['mensaje'] = 'bad';
-    //         $transaction->rollBack();
-    //     }
-    //     return $result;
-    // }
 
     //Esta función busca a un usuario por la primary key ($id)
     protected function findModel($id)
