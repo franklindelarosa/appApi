@@ -76,33 +76,29 @@ class UsuarioController extends Controller
     //Esta acción elimina a un jugador de un partido, recibe el partido, el equipo, el id del jugador a sacar
     //y la entidad del jugador a sacar (usuarios|invitado)
     public function actionSacarJugador(){
-        if(isset($_POST['entidad']) && isset($_POST['equipo']) && isset($_POST['partido'])){
-            $transaction = \Yii::$app->db->beginTransaction();
-            try {
-                if($_POST['entidad'] === 'usuario'){
-                    $sql = "DELETE FROM usuarios_partidos WHERE id_partido = ".$_POST['partido']." AND id_usuario = ".Yii::$app->user->id;
-                    \Yii::$app->db->createCommand($sql)->execute();
-                    $sql = "SELECT id_invitado, equipo FROM invitaciones WHERE id_partido = ".$_POST['partido']." AND id_usuario = ".Yii::$app->user->id;
-                    $result['invitados'] = \Yii::$app->db->createCommand($sql)->queryAll();
-                    $sql = "DELETE FROM invitaciones WHERE id_partido = ".$_POST['partido']." AND id_usuario = ".Yii::$app->user->id;
-                    \Yii::$app->db->createCommand($sql)->execute();
-                    $sql = "UPDATE partidos SET ".$_POST['equipo']." = (".$_POST['equipo']."-1) WHERE id_partido = ".$_POST['partido'];
-                    \Yii::$app->db->createCommand($sql)->execute();
-                }else{
-                    if(isset($_POST['jugador'])){
-                        $sql = "DELETE FROM invitaciones WHERE id_partido = ".$_POST['partido']." AND id_invitado = ".$_POST['jugador'];
-                        \Yii::$app->db->createCommand($sql)->execute();
-                    }
-                }
-                // $transaction->commit();
-                $result['status'] = 'ok';
-                $result['equipo'] = $_POST['equipo'];
-            } catch (Exception $e) {
-                $result['status'] = 'bad';
-                $result['mensaje'] = $e->getMessage();
-                $transaction->rollBack();
+    $transaction = \Yii::$app->db->beginTransaction();
+        try {
+            if($_POST['entidad'] === 'usuario'){
+                $sql = "DELETE FROM usuarios_partidos WHERE id_partido = ".$_POST['partido']." AND id_usuario = ".Yii::$app->user->id;
+                \Yii::$app->db->createCommand($sql)->execute();
+                $sql = "SELECT id_invitado, equipo FROM invitaciones WHERE id_partido = ".$_POST['partido']." AND id_usuario = ".Yii::$app->user->id;
+                $result['invitados'] = \Yii::$app->db->createCommand($sql)->queryAll();
+                $sql = "DELETE FROM invitaciones WHERE id_partido = ".$_POST['partido']." AND id_usuario = ".Yii::$app->user->id;
+                \Yii::$app->db->createCommand($sql)->execute();
+                $sql = "UPDATE partidos SET ".$_POST['equipo']." = (".$_POST['equipo']."-1) WHERE id_partido = ".$_POST['partido'];
+                \Yii::$app->db->createCommand($sql)->execute();
+            }else{
+                $sql = "DELETE FROM invitaciones WHERE id_partido = ".$_POST['partido']." AND id_invitado = ".$_POST['jugador'];
+                \Yii::$app->db->createCommand($sql)->execute();
             }
-        }else{$result['status'] = 'bad';$result['mensaje'] = "Faltaron parámetros";}
+            $transaction->commit();
+            $result['status'] = 'ok';
+            $result['equipo'] = $_POST['equipo'];
+        } catch (Exception $e) {
+            $result['status'] = 'bad';
+            $result['mensaje'] = $e->getMessage();
+            $transaction->rollBack();
+        }
         \Yii::$app->response->format = 'json';
         return $result;
     }
@@ -131,7 +127,7 @@ class UsuarioController extends Controller
         return ['status' => $status, 'data' => $result];
     }
 
-    //Esta acción recibe el id del partido, el equipo (blanco/negro) y los datos del invitado para registrarlo en el partido
+    //Esta acción recibe el id del partido, el equipo (blancos/negros) y los datos del invitado para registrarlo en el partido
     public function actionRegistrarInvitado(){
         $transaction = \Yii::$app->db->beginTransaction();
         try {
@@ -142,21 +138,23 @@ class UsuarioController extends Controller
             $invitado->sexo = $_POST['sexo'];
             $invitado->telefono = $_POST['telefono'];
             if($invitado->save()){
-                $sql = "INSERT INTO invitaciones (id_usuario, id_invitado, equipo, id_partido) VALUES ('".Yii::$app->user->id."', '".$invitado->id_invitado."', '".strtolower(substr($_POST['equipo'],0,1))."', '".$_POST['partido']."')";
+                $sql = "INSERT INTO invitaciones (id_usuario, id_invitado, equipo, id_partido) VALUES ('".Yii::$app->user->id."', '".$invitado->id_invitado."', '".substr($_POST['equipo'],0,1)."', '".$_POST['partido']."')";
                 \Yii::$app->db->createCommand($sql)->execute();
-                $sql = "UPDATE partidos SET ".strtolower($_POST['equipo'])." = (".strtolower($_POST['equipo'])."+1) WHERE id_partido = ".$_POST['partido'];
+                $sql = "UPDATE partidos SET ".$_POST['equipo']." = (".$_POST['equipo']."+1) WHERE id_partido = ".$_POST['partido'];
                 \Yii::$app->db->createCommand($sql)->execute();
-                $result['status'] = 'ok';
+                $status = 'ok';
+                $result['id'] = $invitado->id_invitado;
+                $result['nombre'] = $_POST['nombres']." ".$_POST['apellidos'];
+                $result['equipo'] = $_POST['equipo'];
+                $result['responsable'] = Yii::$app->user->id;
+                $transaction->commit();
             }
-            $result['id'] = $invitado->id_invitado;
-            $transaction->commit();
         } catch (Exception $e) {
-            $result['status'] = 'bad';
+            $status = 'bad';
             $transaction->rollBack();
         }
-        $result['nombre'] = $_POST['nombres']." ".$_POST['apellidos'];
         \Yii::$app->response->format = 'json';
-        return $result;
+        return ['status' => $status, 'data' => $result];
     }
 
     //Esta acción permite actualizar el perfil de un jugador, devuelve status = 'ok' si se pudo guardar, si no se pudo status = 'bad'

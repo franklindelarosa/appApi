@@ -94,7 +94,7 @@ class SiteController extends Controller
         try {
             $sql = "SET lc_time_names = 'es_CO'";
             Yii::$app->db->createCommand($sql)->execute();
-            $sql = "SELECT hora, DATE_FORMAT(hora, '%r') label, blancos, negros, (blancos+negros) total, venta FROM partidos WHERE estado = :estado AND id_cancha = :id_cancha AND fecha = :fecha ORDER BY hora ASC";
+            $sql = "SELECT hora, DATE_FORMAT(hora, '%h:%i %p') label, blancos, negros, (blancos+negros) total, venta FROM partidos WHERE estado = :estado AND id_cancha = :id_cancha AND fecha = :fecha ORDER BY hora ASC";
             $result = Yii::$app->db->createCommand($sql)->bindValue(':estado', Partidos::STATUS_DISPONIBLE)
             ->bindValue(':id_cancha', $_POST['cancha'])
             ->bindValue(':fecha', $_POST['fecha'])->queryAll();
