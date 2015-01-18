@@ -90,6 +90,8 @@ class UsuarioController extends Controller
             }else{
                 $sql = "DELETE FROM invitaciones WHERE id_partido = ".$_POST['partido']." AND id_invitado = ".$_POST['jugador'];
                 \Yii::$app->db->createCommand($sql)->execute();
+                $sql = "DELETE FROM invitados WHERE id_invitado = ".$_POST['jugador'];
+                \Yii::$app->db->createCommand($sql)->execute();
             }
             $transaction->commit();
             $result['status'] = 'ok';
@@ -109,22 +111,49 @@ class UsuarioController extends Controller
         $transaction = \Yii::$app->db->beginTransaction();
         $user = Usuario::findOne(Yii::$app->user->id);
         try {
-            $sql = "INSERT INTO usuarios_partidos (id_usuario, id_partido, equipo) VALUES (".Yii::$app->user->id.", ".$_POST['partido'].", '".substr($_POST['equipo'],0,1)."')";
-            \Yii::$app->db->createCommand($sql)->execute();
-            $sql = "UPDATE partidos SET ".$_POST['equipo']." = (".$_POST['equipo']."+1) WHERE id_partido = ".$_POST['partido'];
-            \Yii::$app->db->createCommand($sql)->execute();
-            $result['entidad'] = 'usuario';
-            $result['equipo'] = substr($_POST['equipo'],0,1);
-            $result['id'] = Yii::$app->user->id;
-            $result['nombre'] = $user->nombres." ".$user->apellidos;
+            $sql = "SELECT COUNT(*) FROM usuarios_partidos WHERE id_usuario = ".Yii::$app->user->id." AND id_partido = ".$_POST['partido'];
+            $conteo = \Yii::$app->db->createCommand($sql)->queryScalar();
+            if($conteo < 1){
+                $sql = "SELECT fecha, hora FROM partidos WHERE id_partido = ".$_POST['partido'];
+                $tiempo = \Yii::$app->db->createCommand($sql)->queryAll();
+                $sql = "SELECT COUNT(*), c.nombre FROM usuarios_partidos ut, partidos p, canchas c WHERE ut.id_usuario = ".
+                \Yii::$app->user->id." AND ut.id_partido <> ".$_POST['partido']." AND p.id_partido = ut.id_partido AND p.fecha = '".
+                $tiempo[0]['fecha']."' AND p.hora = '".$tiempo[0]['hora']."' AND p.id_cancha = c.id_cancha";
+                $query = \Yii::$app->db->createCommand($sql);
+                $conteo = $query->queryScalar();
+                $cancha = $query->queryAll();
+                // return ['result' => $cancha];
+                // return [$tiempo[0]['fecha'], $tiempo[0]['hora'], $conteo, $cancha];
+                if($conteo < 1){
+                    $sql = "INSERT INTO usuarios_partidos (id_usuario, id_partido, equipo) VALUES (".Yii::$app->user->id.", ".$_POST['partido'].", '".substr($_POST['equipo'],0,1)."')";
+                    \Yii::$app->db->createCommand($sql)->execute();
+                    $sql = "UPDATE partidos SET ".$_POST['equipo']." = (".$_POST['equipo']."+1) WHERE id_partido = ".$_POST['partido'];
+                    \Yii::$app->db->createCommand($sql)->execute();
+                    $result['entidad'] = 'usuario';
+                    $result['equipo'] = substr($_POST['equipo'],0,1);
+                    $result['id'] = Yii::$app->user->id;
+                    $result['nombre'] = $user->nombres." ".$user->apellidos;
+                    $status = 'ok';
+                    $mensaje = 'Todo bien';
+                }else{
+                    $status = 'bad';
+                    $result['tipo'] = 1;
+                    $mensaje = "El usuario va a jugar otro partido el mismo día a la misma hora en la cancha ".$cancha[0]['nombre'];
+                }
+            }else{
+                $status = 'bad';
+                $result['tipo'] = 2;
+                $mensaje = "El usuario ya existe en el partido";
+            }
             $transaction->commit();
-            $status = 'ok';
         } catch (Exception $e) {
             $status = 'bad';
+            $result['tipo'] = 3;
+            $mensaje = "Hubo un error en la transacción, inténtalo en breve";
             $transaction->rollBack();
         }
         \Yii::$app->response->format = 'json';
-        return ['status' => $status, 'data' => $result];
+        return ['status' => $status, 'data' => $result, 'mensaje' => $mensaje];
     }
 
     //Esta acción recibe el id del partido, el equipo (blancos/negros) y los datos del invitado para registrarlo en el partido
