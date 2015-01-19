@@ -54,7 +54,7 @@ class SiteController extends Controller
         \Yii::$app->response->format = 'json';
         // Resultado por queryBuilder:
         $query = new Query;
-        $query->select('c.*')->distinct()->from("canchas c")->innerJoin("partidos p", "p.id_cancha = c.id_cancha AND p.estado = :estado");
+        $query->select('c.*')->distinct()->from("canchas c")->innerJoin("partidos p", "p.id_cancha = c.id_cancha AND p.estado = :estado AND p.fecha >= now()");
         return ['status' => 'ok', 'data' => $query->addParams([':estado' => Partidos::STATUS_DISPONIBLE])->orderBy(['c.nombre' => SORT_ASC])->all()];
 
         // Resultado por Data Access Object:

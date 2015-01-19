@@ -199,10 +199,10 @@ class UsuarioController extends Controller
         $model->usuario = $_POST['correo'];
         $model->telefono = $_POST['telefono'];
         $model->sexo = $_POST['sexo'];
-        // $model->accessToken = $model->contrasena;
+        $model->accessToken = md5($model->contrasena);
         // $model->perfil = 'Jugador';
         if($model->save()){
-            return ['status' => 'ok', 'mensaje' => 'Actualizado correctamente'];
+            return ['status' => 'ok', 'mensaje' => 'Actualizado correctamente', 'key' => $model->accessToken];
         }else{
             return ['status' => 'bad', 'mensaje' => 'No se pudo actualizar'/*, 'auth' => Yii::$app->user->identity*/];
         }
@@ -218,8 +218,8 @@ class UsuarioController extends Controller
             $result['data'] = $user;
             $sql = "SET lc_time_names = 'es_CO'";
             Yii::$app->db->createCommand($sql)->execute();
-            $sql = "SELECT p.fecha, DATE_FORMAT(p.fecha, '%W %e %M') label_fecha, p.hora, DATE_FORMAT(p.hora, '%r') label_hora FROM usuarios_partidos ut, partidos p WHERE ut.id_usuario = ".
-            Yii::$app->user->id." AND p.estado = 2 AND ut.id_partido = p.id_partido ORDER BY p.fecha DESC, p.hora DESC LIMIT 0,1";
+            $sql = "SELECT p.fecha, DATE_FORMAT(p.fecha, '%W %e %M') label_fecha, p.hora, DATE_FORMAT(p.hora, '%h:%i %p') label_hora, c.* FROM usuarios_partidos ut, partidos p, canchas c WHERE ut.id_usuario = ".
+            Yii::$app->user->id." AND p.estado = 2 AND ut.id_partido = p.id_partido AND p.id_cancha = c.id_cancha ORDER BY p.fecha DESC, p.hora DESC LIMIT 0,1";
             $last = \Yii::$app->db->createCommand($sql)->queryOne();
             $result['ultimo_partido'] = $last;
             $transaction->commit();
