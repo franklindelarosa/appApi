@@ -87,6 +87,7 @@ class UsuarioController extends Controller
                 \Yii::$app->db->createCommand($sql)->execute();
                 $sql = "UPDATE partidos SET ".$_POST['equipo']." = (".$_POST['equipo']."-1) WHERE id_partido = ".$_POST['partido'];
                 \Yii::$app->db->createCommand($sql)->execute();
+                $result['yo'] = \Yii::$app->user->id;
             }else{
                 $sql = "DELETE FROM invitaciones WHERE id_partido = ".$_POST['partido']." AND id_invitado = ".$_POST['jugador'];
                 \Yii::$app->db->createCommand($sql)->execute();
