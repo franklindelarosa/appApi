@@ -52,14 +52,16 @@ class SiteController extends Controller
     public function actionListarCanchas()
     {
         \Yii::$app->response->format = 'json';
+        $sql = "SET time_zone = 'America/Bogota'";
+        Yii::$app->db->createCommand($sql)->execute();
         // Resultado por queryBuilder:
-        $query = new Query;
-        $query->select('c.*')->distinct()->from("canchas c")->innerJoin("partidos p", "p.id_cancha = c.id_cancha AND p.estado = :estado AND p.fecha >= now()");
-        return ['status' => 'ok', 'data' => $query->addParams([':estado' => Partidos::STATUS_DISPONIBLE])->orderBy(['c.nombre' => SORT_ASC])->all()];
+        // $query = new Query;
+        // $query->select('c.*')->distinct()->from("canchas c")->innerJoin("partidos p", "p.id_cancha = c.id_cancha AND p.estado = :estado AND (CONCAT(p.fecha, ' ', p.hora) > now())");
+        // return ['status' => 'ok', 'data' => $query->addParams([':estado' => Partidos::STATUS_DISPONIBLE])->orderBy(['c.nombre' => SORT_ASC])->all()];
 
         // Resultado por Data Access Object:
-        // $sql = "SELECT DISTINCT c.* FROM canchas c, partidos p WHERE c.id_cancha = p.id_cancha AND p.estado = :estado";
-        // return Yii::$app->db->createCommand($sql)->bindValue(':estado', Partidos::STATUS_DISPONIBLE)->queryAll();
+        $sql = "SELECT DISTINCT c.* FROM canchas c, partidos p WHERE c.id_cancha = p.id_cancha AND p.estado = 1 AND CONCAT(p.fecha, ' ', p.hora) > now() ORDER BY c.nombre ASC";
+        return ['status' => 'ok', 'data' => Yii::$app->db->createCommand($sql)->queryAll()];
 
         // Resultado por ActiveRecords:
         // return Canchas::find()->innerJoinWith([
@@ -76,7 +78,7 @@ class SiteController extends Controller
         //SELECT @@lc_time_names;
         $sql = "SET lc_time_names = 'es_CO'";
         Yii::$app->db->createCommand($sql)->execute();
-        $sql = "SELECT DISTINCT fecha, DATE_FORMAT(fecha, '%W %e %M') label FROM partidos WHERE estado = :estado AND id_cancha = :id_cancha ORDER BY fecha ASC ";
+        $sql = "SELECT DISTINCT fecha, DATE_FORMAT(fecha, '%W %e %M') label FROM partidos WHERE estado = :estado AND id_cancha = :id_cancha AND CONCAT(fecha, ' ', hora) > now() ORDER BY fecha ASC ";
         return ['status' => 'ok', 'data' => Yii::$app->db->createCommand($sql)->bindValue(':estado', Partidos::STATUS_DISPONIBLE)
                 ->bindValue(':id_cancha', $_POST['cancha'])->queryAll()];
     }
@@ -94,7 +96,7 @@ class SiteController extends Controller
         try {
             $sql = "SET lc_time_names = 'es_CO'";
             Yii::$app->db->createCommand($sql)->execute();
-            $sql = "SELECT hora, DATE_FORMAT(hora, '%h:%i %p') label, blancos, negros, (blancos+negros) total, venta FROM partidos WHERE estado = :estado AND id_cancha = :id_cancha AND fecha = :fecha ORDER BY hora ASC";
+            $sql = "SELECT hora, DATE_FORMAT(hora, '%h:%i %p') label, blancos, negros, (blancos+negros) total, venta FROM partidos WHERE estado = :estado AND id_cancha = :id_cancha AND fecha = :fecha AND CONCAT(fecha, ' ', hora) > now() ORDER BY hora ASC";
             $result = Yii::$app->db->createCommand($sql)->bindValue(':estado', Partidos::STATUS_DISPONIBLE)
             ->bindValue(':id_cancha', $_POST['cancha'])
             ->bindValue(':fecha', $_POST['fecha'])->queryAll();
