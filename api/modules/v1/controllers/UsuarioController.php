@@ -222,6 +222,10 @@ class UsuarioController extends Controller
             Yii::$app->user->id." AND p.estado = 2 AND ut.id_partido = p.id_partido AND p.id_cancha = c.id_cancha ORDER BY p.fecha DESC, p.hora DESC LIMIT 0,1";
             $last = \Yii::$app->db->createCommand($sql)->queryOne();
             $result['ultimo_partido'] = $last;
+            $sql = "SELECT COUNT(*) FROM usuarios_partidos ut, partidos p WHERE ut.id_usuario = ".Yii::$app->user->id." AND ut.id_partido = p.id_partido AND p.estado = 2";
+            $totalPartidos = \Yii::$app->db->createCommand($sql)->queryScalar();
+            // return $totalPartidos;
+            $result['total'] = $totalPartidos;
             $transaction->commit();
             $result['status'] = 'ok';
         } catch (Exception $e) {
