@@ -219,7 +219,7 @@ class UsuarioController extends Controller
             $sql = "SET lc_time_names = 'es_CO'";
             Yii::$app->db->createCommand($sql)->execute();
             $sql = "SELECT p.fecha, DATE_FORMAT(p.fecha, '%W %e %M') label_fecha, p.hora, DATE_FORMAT(p.hora, '%h:%i %p') label_hora, c.* FROM usuarios_partidos ut, partidos p, canchas c WHERE ut.id_usuario = ".
-            Yii::$app->user->id." AND p.estado = 2 AND ut.id_partido = p.id_partido AND p.id_cancha = c.id_cancha ORDER BY p.fecha DESC, p.hora DESC LIMIT 0,1";
+            Yii::$app->user->id." AND ut.id_partido = p.id_partido AND p.id_cancha = c.id_cancha ORDER BY p.fecha DESC, p.hora DESC LIMIT 0,1";
             $last = \Yii::$app->db->createCommand($sql)->queryOne();
             $result['ultimo_partido'] = $last;
             $sql = "SELECT COUNT(*) FROM usuarios_partidos ut, partidos p WHERE ut.id_usuario = ".Yii::$app->user->id." AND ut.id_partido = p.id_partido AND p.estado = 2";

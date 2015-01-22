@@ -52,7 +52,7 @@ class SiteController extends Controller
     public function actionListarCanchas()
     {
         \Yii::$app->response->format = 'json';
-        $sql = "SET time_zone = 'America/Bogota'";
+        $sql = "SET time_zone = '-05:00'"; //Hora de Colombia
         Yii::$app->db->createCommand($sql)->execute();
         // Resultado por queryBuilder:
         // $query = new Query;
@@ -60,7 +60,7 @@ class SiteController extends Controller
         // return ['status' => 'ok', 'data' => $query->addParams([':estado' => Partidos::STATUS_DISPONIBLE])->orderBy(['c.nombre' => SORT_ASC])->all()];
 
         // Resultado por Data Access Object:
-        $sql = "SELECT DISTINCT c.* FROM canchas c, partidos p WHERE c.id_cancha = p.id_cancha AND p.estado = 1 AND CONCAT(p.fecha, ' ', p.hora) > now() ORDER BY c.nombre ASC";
+        $sql = "SELECT DISTINCT c.* FROM canchas c, partidos p WHERE c.id_cancha = p.id_cancha AND p.estado = ".Partidos::STATUS_DISPONIBLE." AND CONCAT(p.fecha, ' ', p.hora) > now() ORDER BY c.nombre ASC";
         return ['status' => 'ok', 'data' => Yii::$app->db->createCommand($sql)->queryAll()];
 
         // Resultado por ActiveRecords:
@@ -153,10 +153,11 @@ class SiteController extends Controller
     //sistema. Regresa status = 'ok' y el accessToken si existe, de lo contrario status = 'bad'
     public function actionLogin()
     {//En el local se guardó el accessToken como _chrome-rel-back
-        $sql = "SELECT COUNT(*), accessToken, id_usuario FROM usuarios WHERE correo = :correo AND contrasena = :contrasena";
+        $sql = "SELECT COUNT(*), accessToken, id_usuario FROM usuarios WHERE correo = :correo AND contrasena = :contrasena AND estado = :estado";
         $query = Yii::$app->db->createCommand($sql)
         ->bindValue(':correo', $_POST['correo'])
-        ->bindValue(':contrasena', sha1($_POST['contrasena']));
+        ->bindValue(':contrasena', sha1($_POST['contrasena']))
+        ->bindValue(':estado', 4);
         $total = $query->queryScalar();
         $access = $query->query();
         if($total > 0){
@@ -182,7 +183,7 @@ class SiteController extends Controller
         $model->correo = $_POST['correo'];
         $model->usuario = $_POST['correo'];
         $model->contrasena = sha1($_POST['contrasena']);
-        $model->accessToken = md5($model->contrasena);
+        $model->accessToken = md5(time());
         $model->telefono = $_POST['telefono'];
         $model->sexo = $_POST['sexo'];
         $model->perfil = 'Jugador';
