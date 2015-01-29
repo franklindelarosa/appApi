@@ -213,19 +213,27 @@ class UsuarioController extends Controller
         \Yii::$app->response->format = 'json';
         $transaction = \Yii::$app->db->beginTransaction();
         try {
-            $sql = "SELECT CONCAT(nombres, ' ', apellidos) nombre, correo, (if(sexo = 'f','Femenino','Masculino')) sexo, telefono FROM usuarios WHERE id_usuario = ".Yii::$app->user->id;
+            $sql = "SELECT CONCAT(nombres, ' ', apellidos) nombre, correo, (if(sexo = 'f','Mujer','Hombre')) sexo, telefono FROM usuarios WHERE id_usuario = ".Yii::$app->user->id;
             $user = \Yii::$app->db->createCommand($sql)->queryOne();
             $result['data'] = $user;
+
             $sql = "SET lc_time_names = 'es_CO'";
             Yii::$app->db->createCommand($sql)->execute();
+
+            // $sql = "SELECT p.fecha, DATE_FORMAT(p.fecha, '%W %e %M') label_fecha, p.hora, DATE_FORMAT(p.hora, '%h:%i %p') label_hora, c.* FROM usuarios_partidos ut, partidos p, canchas c WHERE ut.id_usuario = ".
+            // Yii::$app->user->id." AND ut.id_partido = p.id_partido AND p.id_cancha = c.id_cancha ORDER BY p.fecha DESC, p.hora DESC LIMIT 0,1";
+            // $last = \Yii::$app->db->createCommand($sql)->queryOne();
+            // $result['ultimo_partido'] = $last;
+
             $sql = "SELECT p.fecha, DATE_FORMAT(p.fecha, '%W %e %M') label_fecha, p.hora, DATE_FORMAT(p.hora, '%h:%i %p') label_hora, c.* FROM usuarios_partidos ut, partidos p, canchas c WHERE ut.id_usuario = ".
-            Yii::$app->user->id." AND ut.id_partido = p.id_partido AND p.id_cancha = c.id_cancha ORDER BY p.fecha DESC, p.hora DESC LIMIT 0,1";
-            $last = \Yii::$app->db->createCommand($sql)->queryOne();
-            $result['ultimo_partido'] = $last;
+            Yii::$app->user->id." AND ut.id_partido = p.id_partido AND p.id_cancha = c.id_cancha AND p.estado = 1 ORDER BY p.fecha ASC, p.hora ASC";
+            $pendientes = \Yii::$app->db->createCommand($sql)->queryAll();
+            $result['pendientes'] = $pendientes;
+
             $sql = "SELECT COUNT(*) FROM usuarios_partidos ut, partidos p WHERE ut.id_usuario = ".Yii::$app->user->id." AND ut.id_partido = p.id_partido AND p.estado = 2";
             $totalPartidos = \Yii::$app->db->createCommand($sql)->queryScalar();
-            // return $totalPartidos;
             $result['total'] = $totalPartidos;
+
             $transaction->commit();
             $result['status'] = 'ok';
         } catch (Exception $e) {

@@ -4,10 +4,10 @@
 
 	"default": {
 
-		"host": "74.220.207.163",
-		"username": "fcracks@elecsis.co", // or null for anonymous login
-		"password": "fcracks",
-		"path": "/futbolcracksapi",
+		"host": "sftp://104.236.97.105",
+		"username": "fc", // or null for anonymous login
+		"password": "fcracks123",
+		"path": "/var/www/fcracks/fcapi",
 
 		"upload_on_save": false, // set *false* if you do not want to upload on save!
 
