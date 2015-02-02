@@ -199,7 +199,7 @@ class UsuarioController extends Controller
         $model->usuario = $_POST['correo'];
         $model->telefono = $_POST['telefono'];
         $model->sexo = $_POST['sexo'];
-        $model->accessToken = md5($model->contrasena);
+        $model->accessToken = md5(time());
         // $model->perfil = 'Jugador';
         if($model->save()){
             return ['status' => 'ok', 'mensaje' => 'Actualizado correctamente', 'key' => $model->accessToken];
@@ -213,7 +213,7 @@ class UsuarioController extends Controller
         \Yii::$app->response->format = 'json';
         $transaction = \Yii::$app->db->beginTransaction();
         try {
-            $sql = "SELECT CONCAT(nombres, ' ', apellidos) nombre, correo, (if(sexo = 'f','Mujer','Hombre')) sexo, telefono FROM usuarios WHERE id_usuario = ".Yii::$app->user->id;
+            $sql = "SELECT nombres, apellidos, CONCAT(nombres, ' ', apellidos) nombre, correo, (if(sexo = 'f','Mujer','Hombre')) sexo, sexo sex, telefono FROM usuarios WHERE id_usuario = ".Yii::$app->user->id;
             $user = \Yii::$app->db->createCommand($sql)->queryOne();
             $result['data'] = $user;
 
