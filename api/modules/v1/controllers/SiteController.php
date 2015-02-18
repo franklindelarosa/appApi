@@ -37,6 +37,7 @@ class SiteController extends Controller
                 'equipos' => ['post'],
                 'login' => ['post'],
                 'registrar-perfil' => ['post'],
+                'informacion-jugador' => ['post'],
             ],
         ];
         return $behaviors;
@@ -194,6 +195,21 @@ class SiteController extends Controller
         }else{
             return ['status' => 'bad'/*, 'auth' => Yii::$app->user->identity*/];
         }
+    }
+
+    //Esta acción permite consultar la información de un jugador (usuario/invitado), devuelve status = 'ok' y el data
+    //con el tipo de etidad recibido, si no se pudo status = 'bad'
+    public function actionInformacionJugador()
+    {
+        \Yii::$app->response->format = 'json';
+        if($_POST['entidad'] === 'usuario'){
+            $sql = "SELECT nombres, apellidos, correo, perfil, (if(sexo = 'f','Mujer','Hombre')) sexo, telefono FROM usuarios WHERE id_usuario = ".$_POST['id'];
+            $jugador = \Yii::$app->db->createCommand($sql)->queryOne();
+        }else{
+            $sql = "SELECT i.nombres, i.apellidos, i.correo, 'Invitado' perfil, (if(i.sexo = 'f','Mujer','Hombre')) sexo, i.telefono, u.nombres resp_nombres, u.apellidos resp_apellidos, u.telefono tel FROM invitados i, invitaciones ic, usuarios u WHERE u.id_usuario = ic.id_usuario AND i.id_invitado = ic.id_invitado AND ic.id_partido = ".$_POST['partido']." AND i.id_invitado = ".$_POST['id'];
+            $jugador = \Yii::$app->db->createCommand($sql)->queryOne();
+        }
+        return ['status' => 'ok', 'data' => $jugador, 'entidad' => $_POST['entidad']];
     }
 
     //Esta función busca a un usuario por la primary key ($id)

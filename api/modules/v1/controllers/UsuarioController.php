@@ -85,8 +85,8 @@ class UsuarioController extends Controller
                 $result['invitados'] = \Yii::$app->db->createCommand($sql)->queryAll();
                 $sql = "DELETE FROM invitaciones WHERE id_partido = ".$_POST['partido']." AND id_usuario = ".Yii::$app->user->id;
                 \Yii::$app->db->createCommand($sql)->execute();
-                $sql = "UPDATE partidos SET ".$_POST['equipo']." = (".$_POST['equipo']."-1) WHERE id_partido = ".$_POST['partido'];
-                \Yii::$app->db->createCommand($sql)->execute();
+                // $sql = "UPDATE partidos SET ".$_POST['equipo']." = (".$_POST['equipo']."-1) WHERE id_partido = ".$_POST['partido'];
+                // \Yii::$app->db->createCommand($sql)->execute();
                 $result['yo'] = \Yii::$app->user->id;
             }else{
                 $sql = "DELETE FROM invitaciones WHERE id_partido = ".$_POST['partido']." AND id_invitado = ".$_POST['jugador'];
@@ -199,7 +199,7 @@ class UsuarioController extends Controller
         $model->usuario = $_POST['correo'];
         $model->telefono = $_POST['telefono'];
         $model->sexo = $_POST['sexo'];
-        $model->accessToken = md5(time());
+        // $model->accessToken = md5(time());
         // $model->perfil = 'Jugador';
         if($model->save()){
             return ['status' => 'ok', 'mensaje' => 'Actualizado correctamente', 'key' => $model->accessToken];
