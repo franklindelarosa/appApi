@@ -2,7 +2,7 @@
 
 return [
     'class' => 'yii\db\Connection',
-    'dsn' => 'mysql:host=localhost;dbname=futbol_cracks',
+    'dsn' => 'mysql:host=localhost;dbname=elecsisc_fcracks',
     'username' => 'root',
     'password' => '',
     'charset' => 'utf8',

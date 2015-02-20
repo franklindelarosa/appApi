@@ -8,8 +8,7 @@ use Yii;
  * This is the model class for table "usuarios".
  *
  * @property integer $id_usuario
- * @property string $nombres
- * @property string $apellidos
+ * @property string $nombre
  * @property string $usuario
  * @property string $contrasena
  * @property string $sexo
@@ -17,20 +16,15 @@ use Yii;
  * @property integer $estado
  * @property string $telefono
  * @property string $correo
- * @property integer $id_posicion
- * @property string $fecha_nacimiento
- * @property string $pierna_habil
- * @property string $accessToken
+ * @property string $authKey
+* @property string $accessToken
  *
  * @property Invitaciones[] $invitaciones
  * @property Estados $estado
- * @property Posiciones $idPosicion
  * @property UsuariosPartidos[] $usuariosPartidos
  */
 class Usuario extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
 {
-    public $authKey;
-    // public $accessToken;
     /**
      * @inheritdoc
      */
@@ -45,18 +39,13 @@ class Usuario extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     public function rules()
     {
         return [
-            [['nombres', 'apellidos', 'usuario', 'contrasena', 'sexo', 'correo', 'accessToken'], 'required'],
-            [['estado', 'id_posicion'], 'integer'],
-            [['fecha_nacimiento'], 'safe'],
-            [['nombres', 'apellidos', 'usuario', 'perfil', 'correo'], 'string', 'max' => 45],
-            [['contrasena', 'accessToken'], 'string', 'max' => 70],
+            [['nombres', 'apellidos', 'usuario', 'contrasena', 'sexo', 'accessToken'], 'required'],
+            [['estado'], 'integer'],
+            [['nombres', 'apellidos', 'usuario', 'perfil', 'correo', 'accessToken'], 'string', 'max' => 45],
+            [['contrasena'], 'string', 'max' => 70],
             [['sexo'], 'string', 'max' => 1],
             [['telefono'], 'string', 'max' => 20],
-            [['usuario'], 'unique'],
-            [['correo'], 'unique'],
-            [['pierna_habil'], 'string', 'max' => 15],
-            [['usuario'], 'unique'],
-            [['accessToken'], 'unique']
+           [['usuario'], 'unique']
         ];
     }
 
@@ -70,15 +59,12 @@ class Usuario extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
             'nombres' => 'Nombres',
             'apellidos' => 'Apellidos',
             'usuario' => 'Usuario',
-            'contrasena' => 'Contraseña',
+            'contrasena' => 'Contrasena',
             'sexo' => 'Sexo',
             'perfil' => 'Perfil',
             'estado' => 'Estado',
-            'telefono' => 'Teléfono',
+            'telefono' => 'Telefono',
             'correo' => 'Correo',
-            'id_posicion' => 'Posición',
-            'fecha_nacimiento' => 'Fecha de nacimiento',
-            'pierna_habil' => 'Pierna Hábil',
             'accessToken' => 'Access Token',
         ];
     }
@@ -91,18 +77,10 @@ class Usuario extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
         return $this->hasMany(Invitaciones::className(), ['id_usuario' => 'id_usuario']);
     }
 
-    public function getIdEstado()
+    public function getEstado()
     {
         return $this->hasOne(Estados::className(), ['id_estado' => 'estado']);
     }
-
-    /**
-    * @return \yii\db\ActiveQuery
-    */
-   public function getIdPosicion()
-   {
-       return $this->hasOne(Posiciones::className(), ['id_posicion' => 'id_posicion']);
-   }
 
     /**
      * @return \yii\db\ActiveQuery
@@ -130,12 +108,15 @@ class Usuario extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     public static function findIdentityByAccessToken($token, $type = null)
     {
         return static::findOne(['accessToken' => $token]);
-        // $usuario = Usuario::find()->where(['accessToken' => $token])->one();
-        // if ($usuario['accessToken'] !== null) {
-        //     return new static($usuario);
-        // }
-        // return null;
     }
+    // public static function findIdentityByAccessToken($token, $type = null)
+    // {
+    //     $usuario = Usuario::find()->where(['accessToken' => $toke])->one();
+    //     if ($usuario['accessToken'] !== null) {
+    //         return new static($usuario);
+    //     }
+    //     return null;
+    // }
 
     public function getUsername(){
         return $this->usuario;
