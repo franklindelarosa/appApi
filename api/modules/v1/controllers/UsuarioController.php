@@ -213,7 +213,7 @@ class UsuarioController extends Controller
         \Yii::$app->response->format = 'json';
         $transaction = \Yii::$app->db->beginTransaction();
         try {
-            $sql = "SELECT nombres, apellidos, CONCAT(nombres, ' ', apellidos) nombre, correo, (if(sexo = 'f','Mujer','Hombre')) sexo, sexo sex, telefono FROM usuarios WHERE id_usuario = ".Yii::$app->user->id;
+            $sql = "SELECT u.nombres, u.apellidos, CONCAT(u.nombres, ' ', u.apellidos) nombre, u.correo, (if(u.sexo = 'f','Mujer','Hombre')) sexo, u.sexo sex, u.telefono, u.fecha_nacimiento, u.pierna_habil, u.id_posicion, p.posicion FROM usuarios u, posiciones p WHERE p.id_posicion = u.id_posicion AND u.id_usuario = ".Yii::$app->user->id;
             $user = \Yii::$app->db->createCommand($sql)->queryOne();
             $result['data'] = $user;
 

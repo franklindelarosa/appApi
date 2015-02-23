@@ -20,6 +20,7 @@ use Yii;
  * @property integer $id_posicion
  * @property string $fecha_nacimiento
  * @property string $pierna_habil
+ * @property string $foto
  * @property string $accessToken
  *
  * @property Invitaciones[] $invitaciones
@@ -55,7 +56,7 @@ class Usuario extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
             [['usuario'], 'unique'],
             [['correo'], 'unique'],
             [['pierna_habil'], 'string', 'max' => 15],
-            [['usuario'], 'unique'],
+            [['foto'], 'string', 'max' => 100],
             [['accessToken'], 'unique']
         ];
     }
@@ -79,6 +80,7 @@ class Usuario extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
             'id_posicion' => 'Posición',
             'fecha_nacimiento' => 'Fecha de nacimiento',
             'pierna_habil' => 'Pierna Hábil',
+            'foto' => 'Foto',
             'accessToken' => 'Access Token',
         ];
     }

@@ -173,27 +173,28 @@ class SiteController extends Controller
     public function actionRegistrarPerfil()
     {//En el local se guardó el accessToken como _chrome-rel-back
     	\Yii::$app->response->format = 'json';
-        // if(Yii::$app->user->can('Administrador')){
-        //     return ['mensaje' => 'Eres Administrador'];
-        // }else{
-        //     return ['mensaje' => 'Tú no eres Administrador, eres jugador'];
-        // }
-        $model = new Usuario();
-        $model->nombres = $_POST['nombres'];
-        $model->apellidos = $_POST['apellidos'];
-        $model->correo = $_POST['correo'];
-        $model->usuario = $_POST['correo'];
-        $model->contrasena = sha1($_POST['contrasena']);
-        $model->accessToken = md5(time());
-        $model->telefono = $_POST['telefono'];
-        $model->sexo = $_POST['sexo'];
-        $model->perfil = 'Jugador';
-        if($model->save()){
-            $role = Yii::$app->authManager->getRole($model->perfil);
-            Yii::$app->authManager->assign($role, $model->id_usuario);
-            return ['status' => 'ok', 'key' => $model->accessToken, 'id' => $model->id_usuario];
+        $sql = "SELECT COUNT(*) FROM usuarios WHERE correo = '".$_POST['correo']."' OR usuario = '".$_POST['correo']."'";
+        $conteo = \Yii::$app->db->createCommand($sql)->queryScalar();
+        if($conteo === 0){
+            $model = new Usuario();
+            $model->nombres = $_POST['nombres'];
+            $model->apellidos = $_POST['apellidos'];
+            $model->correo = $_POST['correo'];
+            $model->usuario = $_POST['correo'];
+            $model->contrasena = sha1($_POST['contrasena']);
+            $model->accessToken = md5(time());
+            $model->telefono = $_POST['telefono'];
+            $model->sexo = $_POST['sexo'];
+            $model->perfil = 'Jugador';
+            if($model->save()){
+                $role = Yii::$app->authManager->getRole($model->perfil);
+                Yii::$app->authManager->assign($role, $model->id_usuario);
+                return ['status' => 'ok', 'key' => $model->accessToken, 'id' => $model->id_usuario];
+            }else{
+                return ['status' => 'bad', 'mensaje' => "No se pudo completar el registro, vuelve a intentarlo"];
+            }
         }else{
-            return ['status' => 'bad'/*, 'auth' => Yii::$app->user->identity*/];
+            return ['status' => 'bad', 'mensaje' => "Ya existe un usuario asociado con el correo especificado"];
         }
     }
 
