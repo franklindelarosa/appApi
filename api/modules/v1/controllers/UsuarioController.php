@@ -164,9 +164,12 @@ class UsuarioController extends Controller
             $invitado = new Invitados();
             $invitado->nombres = $_POST['nombres'];
             $invitado->apellidos = $_POST['apellidos'];
+            // $invitado->fecha_nacimiento = $_POST['fecha_nacimiento'];
             $invitado->correo = $_POST['correo'];
             $invitado->sexo = $_POST['sexo'];
             $invitado->telefono = $_POST['telefono'];
+            $invitado->id_posicion = $_POST['posicion'];
+            $invitado->pierna_habil = $_POST['pierna_habil'];
             if($invitado->save()){
                 $sql = "INSERT INTO invitaciones (id_usuario, id_invitado, equipo, id_partido) VALUES ('".Yii::$app->user->id."', '".$invitado->id_invitado."', '".substr($_POST['equipo'],0,1)."', '".$_POST['partido']."')";
                 \Yii::$app->db->createCommand($sql)->execute();
@@ -194,11 +197,14 @@ class UsuarioController extends Controller
         $contrasena = $model->contrasena;
         $model->nombres = $_POST['nombres'];
         $model->apellidos = $_POST['apellidos'];
-        $model->correo = $_POST['correo'];
+        ($_POST['fecha_nacimiento'] === '') ? '' : $model->fecha_nacimiento = $_POST['fecha_nacimiento'];
         ($_POST['contrasena'] === '') ? $model->contrasena = $contrasena : $model->contrasena = sha1($_POST['contrasena']);
-        $model->usuario = $_POST['correo'];
-        $model->telefono = $_POST['telefono'];
+        // $model->correo = $_POST['correo'];
+        // $model->usuario = $_POST['correo'];
         $model->sexo = $_POST['sexo'];
+        $model->telefono = $_POST['telefono'];
+        ($_POST['posicion'] === '') ? '' : $model->id_posicion = $_POST['posicion'];
+        ($_POST['pierna_habil'] === '') ? '' : $model->pierna_habil = $_POST['pierna_habil'];
         // $model->accessToken = md5(time());
         // $model->perfil = 'Jugador';
         if($model->save()){

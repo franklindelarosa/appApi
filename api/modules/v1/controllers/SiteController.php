@@ -19,6 +19,7 @@ use app\api\modules\v1\models\Partidos;
 use app\api\modules\v1\models\Consulta;
 use app\api\modules\v1\models\Estados;
 use app\api\modules\v1\models\Invitados;
+use app\api\modules\v1\models\Posiciones;
 
 class SiteController extends Controller
 {
@@ -62,7 +63,7 @@ class SiteController extends Controller
 
         // Resultado por Data Access Object:
         $sql = "SELECT DISTINCT c.* FROM canchas c, partidos p WHERE c.estado = 6 AND c.id_cancha = p.id_cancha AND p.estado = ".Partidos::STATUS_DISPONIBLE." AND CONCAT(p.fecha, ' ', p.hora) > now() ORDER BY c.nombre ASC";
-        return ['status' => 'ok', 'data' => Yii::$app->db->createCommand($sql)->queryAll()];
+        return ['status' => 'ok', 'data' => Yii::$app->db->createCommand($sql)->queryAll(), 'posiciones' => Posiciones::find()->all()];
 
         // Resultado por ActiveRecords:
         // return Canchas::find()->innerJoinWith([
@@ -173,18 +174,21 @@ class SiteController extends Controller
     public function actionRegistrarPerfil()
     {//En el local se guardó el accessToken como _chrome-rel-back
     	\Yii::$app->response->format = 'json';
-        $sql = "SELECT COUNT(*) FROM usuarios WHERE correo = '".$_POST['correo']."' OR usuario = '".$_POST['correo']."'";
-        $conteo = \Yii::$app->db->createCommand($sql)->queryScalar();
+        $sql = "SELECT * FROM usuarios WHERE correo = '".$_POST['correo']."' OR usuario = '".$_POST['correo']."'";
+        $conteo = \Yii::$app->db->createCommand($sql)->query()->getRowCount();
         if($conteo === 0){
             $model = new Usuario();
             $model->nombres = $_POST['nombres'];
             $model->apellidos = $_POST['apellidos'];
+            ($_POST['fecha_nacimiento'] === '') ? '' : $model->fecha_nacimiento = $_POST['fecha_nacimiento'];
             $model->correo = $_POST['correo'];
             $model->usuario = $_POST['correo'];
             $model->contrasena = sha1($_POST['contrasena']);
             $model->accessToken = md5(time());
-            $model->telefono = $_POST['telefono'];
             $model->sexo = $_POST['sexo'];
+            $model->telefono = $_POST['telefono'];
+            ($_POST['posicion'] === '') ? '' : $model->id_posicion = $_POST['posicion'];
+            ($_POST['pierna_habil'] === '') ? '' : $model->pierna_habil = $_POST['pierna_habil'];
             $model->perfil = 'Jugador';
             if($model->save()){
                 $role = Yii::$app->authManager->getRole($model->perfil);
