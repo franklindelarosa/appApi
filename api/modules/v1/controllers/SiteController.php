@@ -180,15 +180,21 @@ class SiteController extends Controller
             $model = new Usuario();
             $model->nombres = $_POST['nombres'];
             $model->apellidos = $_POST['apellidos'];
-            ($_POST['fecha_nacimiento'] === '') ? '' : $model->fecha_nacimiento = $_POST['fecha_nacimiento'];
+            if(isset($_POST['fecha_nacimiento'])){
+                ($_POST['fecha_nacimiento'] === '') ? '' : $model->fecha_nacimiento = $_POST['fecha_nacimiento'];
+            }
             $model->correo = $_POST['correo'];
             $model->usuario = $_POST['correo'];
             $model->contrasena = sha1($_POST['contrasena']);
             $model->accessToken = md5(time());
             $model->sexo = $_POST['sexo'];
             $model->telefono = $_POST['telefono'];
-            ($_POST['posicion'] === '') ? '' : $model->id_posicion = $_POST['posicion'];
-            ($_POST['pierna_habil'] === '') ? '' : $model->pierna_habil = $_POST['pierna_habil'];
+            if(isset($_POST['posicion'])){
+                ($_POST['posicion'] === '') ? '' : $model->id_posicion = $_POST['posicion'];
+            }
+            if(isset($_POST['pierna_habil'])){
+                ($_POST['pierna_habil'] === '') ? '' : $model->pierna_habil = $_POST['pierna_habil'];
+            }
             $model->perfil = 'Jugador';
             if($model->save()){
                 $role = Yii::$app->authManager->getRole($model->perfil);

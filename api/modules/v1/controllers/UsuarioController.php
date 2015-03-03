@@ -83,10 +83,17 @@ class UsuarioController extends Controller
                 \Yii::$app->db->createCommand($sql)->execute();
                 $sql = "SELECT id_invitado, equipo FROM invitaciones WHERE id_partido = ".$_POST['partido']." AND id_usuario = ".Yii::$app->user->id;
                 $result['invitados'] = \Yii::$app->db->createCommand($sql)->queryAll();
+                $invitados = '';
+                foreach ($result['invitados'] as $key => $value) {
+                    $invitados .= $value['id_invitado'].',';
+                }
+                $ids_invitados = substr($invitados, 0, -1);
                 $sql = "DELETE FROM invitaciones WHERE id_partido = ".$_POST['partido']." AND id_usuario = ".Yii::$app->user->id;
                 \Yii::$app->db->createCommand($sql)->execute();
-                // $sql = "UPDATE partidos SET ".$_POST['equipo']." = (".$_POST['equipo']."-1) WHERE id_partido = ".$_POST['partido'];
-                // \Yii::$app->db->createCommand($sql)->execute();
+                if(count($result['invitados']) > 0){
+                    $sql = "DELETE FROM invitados WHERE id_invitado IN (".$ids_invitados.")";
+                    \Yii::$app->db->createCommand($sql)->execute();
+                }
                 $result['yo'] = \Yii::$app->user->id;
             }else{
                 $sql = "DELETE FROM invitaciones WHERE id_partido = ".$_POST['partido']." AND id_invitado = ".$_POST['jugador'];
@@ -164,12 +171,18 @@ class UsuarioController extends Controller
             $invitado = new Invitados();
             $invitado->nombres = $_POST['nombres'];
             $invitado->apellidos = $_POST['apellidos'];
-            // $invitado->fecha_nacimiento = $_POST['fecha_nacimiento'];
+            // if(isset($_POST['fecha_nacimiento'])){
+                // ($_POST['fecha_nacimiento'] === '') ? '' : $invitado->fecha_nacimiento = $_POST['fecha_nacimiento'];
+            // }
             $invitado->correo = $_POST['correo'];
             $invitado->sexo = $_POST['sexo'];
             $invitado->telefono = $_POST['telefono'];
-            $invitado->id_posicion = $_POST['posicion'];
-            $invitado->pierna_habil = $_POST['pierna_habil'];
+            if(isset($_POST['posicion'])){
+                $invitado->id_posicion = $_POST['posicion'];
+            }
+            if(isset($_POST['pierna_habil'])){
+                ($_POST['pierna_habil'] === '') ? '' : $invitado->pierna_habil = $_POST['pierna_habil'];
+            }
             if($invitado->save()){
                 $sql = "INSERT INTO invitaciones (id_usuario, id_invitado, equipo, id_partido) VALUES ('".Yii::$app->user->id."', '".$invitado->id_invitado."', '".substr($_POST['equipo'],0,1)."', '".$_POST['partido']."')";
                 \Yii::$app->db->createCommand($sql)->execute();
@@ -197,14 +210,20 @@ class UsuarioController extends Controller
         $contrasena = $model->contrasena;
         $model->nombres = $_POST['nombres'];
         $model->apellidos = $_POST['apellidos'];
-        ($_POST['fecha_nacimiento'] === '') ? '' : $model->fecha_nacimiento = $_POST['fecha_nacimiento'];
+        if(isset($_POST['fecha_nacimiento'])){
+            ($_POST['fecha_nacimiento'] === '') ? '' : $model->fecha_nacimiento = $_POST['fecha_nacimiento'];
+        }
         ($_POST['contrasena'] === '') ? $model->contrasena = $contrasena : $model->contrasena = sha1($_POST['contrasena']);
         // $model->correo = $_POST['correo'];
         // $model->usuario = $_POST['correo'];
         $model->sexo = $_POST['sexo'];
         $model->telefono = $_POST['telefono'];
-        ($_POST['posicion'] === '') ? '' : $model->id_posicion = $_POST['posicion'];
-        ($_POST['pierna_habil'] === '') ? '' : $model->pierna_habil = $_POST['pierna_habil'];
+        if(isset($_POST['posicion'])){
+            ($_POST['posicion'] === '') ? '' : $model->id_posicion = $_POST['posicion'];
+        }
+        if(isset($_POST['pierna_habil'])){
+            ($_POST['pierna_habil'] === '') ? '' : $model->pierna_habil = $_POST['pierna_habil'];
+        }
         // $model->accessToken = md5(time());
         // $model->perfil = 'Jugador';
         if($model->save()){
@@ -219,7 +238,7 @@ class UsuarioController extends Controller
         \Yii::$app->response->format = 'json';
         $transaction = \Yii::$app->db->beginTransaction();
         try {
-            $sql = "SELECT u.nombres, u.apellidos, CONCAT(u.nombres, ' ', u.apellidos) nombre, u.correo, (if(u.sexo = 'f','Mujer','Hombre')) sexo, u.sexo sex, u.telefono, u.fecha_nacimiento, u.pierna_habil, u.id_posicion, p.posicion FROM usuarios u, posiciones p WHERE p.id_posicion = u.id_posicion AND u.id_usuario = ".Yii::$app->user->id;
+            $sql = "SELECT u.nombres, u.apellidos, CONCAT(u.nombres, ' ', u.apellidos) nombre, u.correo, (if(u.sexo = 'f','Mujer','Hombre')) sexo, u.sexo sex, u.telefono, u.fecha_nacimiento, u.foto, u.pierna_habil, u.id_posicion, p.posicion FROM usuarios u, posiciones p WHERE p.id_posicion = u.id_posicion AND u.id_usuario = ".Yii::$app->user->id;
             $user = \Yii::$app->db->createCommand($sql)->queryOne();
             $result['data'] = $user;
 
@@ -247,6 +266,25 @@ class UsuarioController extends Controller
             $transaction->rollBack();
         }
         return $result;
+    }
+
+    public function actionActualizarFoto(){
+        \Yii::$app->response->format = 'json';
+        $filename = md5(time()).'.jpg';
+        $model = $this->findModel(Yii::$app->user->id);
+        $nombre_viejo = $model->foto;
+        $model->foto = $filename;
+        if($model->save()){
+            if($nombre_viejo !== 'default.png'){
+                unlink($_SERVER['DOCUMENT_ROOT'].Yii::$app->request->baseUrl.'/fotos/'.$nombre_viejo);
+            }
+            $imagen = base64_decode($_POST['foto']);
+            file_put_contents($_SERVER['DOCUMENT_ROOT'].Yii::$app->request->baseUrl.'/fotos/'.$filename, $imagen);
+            return ['status' => 'ok', 'mensaje' => 'Se ha actualizado la foto correctamente',
+            'url' => 'http://fcracks.com'.Yii::$app->request->baseUrl.'/fotos/'.$filename];
+        }else{
+            return ['status' => 'bad', 'mensaje' => 'No se pudo actualizar la foto, vuelve a intentarlo'];
+        }
     }
 
     //Esta función busca a un usuario por la primary key ($id)
