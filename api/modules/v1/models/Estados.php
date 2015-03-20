@@ -21,6 +21,14 @@ class Estados extends \yii\db\ActiveRecord
     /**
      * @inheritdoc
      */
+    const PARTIDO_DISPONIBLE = 1;
+    const PARTIDO_NO_DISPONIBLE = 2;
+    const PARTIDO_CANCELADO = 3;
+    const USUARIO_ACTIVO = 4;
+    const USUARIO_INACTIVO = 5;
+    const CANCHA_ACTIVA = 6;
+    const CANCHA_INACTIVA = 7;
+    
     public static function tableName()
     {
         return 'estados';

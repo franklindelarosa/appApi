@@ -36,6 +36,9 @@ class UsuarioController extends Controller
                 'registrar-invitado' => ['post'],
                 'actualizar-perfil' => ['post'],
                 'info-perfil' => ['post'],
+                'actualizar-foto' => ['post'],
+                'reestablecer-foto' => ['post'],
+                'desactivar-cuenta' => ['post'],
             ],
         ];
         // $behaviors['access'] = [
@@ -213,7 +216,9 @@ class UsuarioController extends Controller
         if(isset($_POST['fecha_nacimiento'])){
             ($_POST['fecha_nacimiento'] === '') ? '' : $model->fecha_nacimiento = $_POST['fecha_nacimiento'];
         }
-        ($_POST['contrasena'] === '') ? $model->contrasena = $contrasena : $model->contrasena = sha1($_POST['contrasena']);
+        if(isset($_POST['contrasena'])){
+            ($_POST['contrasena'] === '') ? $model->contrasena = $contrasena : $model->contrasena = sha1($_POST['contrasena']);
+        }
         // $model->correo = $_POST['correo'];
         // $model->usuario = $_POST['correo'];
         $model->sexo = $_POST['sexo'];
@@ -233,12 +238,12 @@ class UsuarioController extends Controller
         }
     }
 
-    //Devuelve la información de un perfil con el último partido jugado
+    //Devuelve la información de un perfil con los partidos pendientes por jugar
     public function actionInfoPerfil(){
         \Yii::$app->response->format = 'json';
         $transaction = \Yii::$app->db->beginTransaction();
         try {
-            $sql = "SELECT u.nombres, u.apellidos, CONCAT(u.nombres, ' ', u.apellidos) nombre, u.correo, (if(u.sexo = 'f','Mujer','Hombre')) sexo, u.sexo sex, u.telefono, u.fecha_nacimiento, u.foto, u.pierna_habil, u.id_posicion, p.posicion FROM usuarios u, posiciones p WHERE p.id_posicion = u.id_posicion AND u.id_usuario = ".Yii::$app->user->id;
+            $sql = "SELECT u.nombres, u.apellidos, CONCAT(u.nombres, ' ', u.apellidos) nombre, u.correo, (if(u.sexo = 'f','Mujer','Hombre')) sexo, u.sexo sex, u.telefono, u.fecha_nacimiento, u.foto, if(u.foto LIKE('http%'), 'si', 'no') facebook, u.pierna_habil, u.id_posicion, p.posicion FROM usuarios u, posiciones p WHERE p.id_posicion = u.id_posicion AND u.id_usuario = ".Yii::$app->user->id;
             $user = \Yii::$app->db->createCommand($sql)->queryOne();
             $result['data'] = $user;
 
@@ -267,15 +272,16 @@ class UsuarioController extends Controller
         }
         return $result;
     }
-
+    // Actualiza la foto del usuario reemplazando la anterior por la recibida en Base64
     public function actionActualizarFoto(){
         \Yii::$app->response->format = 'json';
-        $filename = md5(time()).'.jpg';
+        $filename = md5(time().rand()).'.jpg';
         $model = $this->findModel(Yii::$app->user->id);
         $nombre_viejo = $model->foto;
+        (strpos((substr($nombre_viejo, 0, 4)), 'http') !== false) ? $filename = 'http'.$filename : '';
         $model->foto = $filename;
         if($model->save()){
-            if($nombre_viejo !== 'default.png'){
+            if($nombre_viejo !== 'default.jpg' && $nombre_viejo !== 'httpdefault.jpg'){
                 unlink($_SERVER['DOCUMENT_ROOT'].Yii::$app->request->baseUrl.'/fotos/'.$nombre_viejo);
             }
             $imagen = base64_decode($_POST['foto']);
@@ -284,6 +290,33 @@ class UsuarioController extends Controller
             'url' => 'http://fcracks.com'.Yii::$app->request->baseUrl.'/fotos/'.$filename];
         }else{
             return ['status' => 'bad', 'mensaje' => 'No se pudo actualizar la foto, vuelve a intentarlo'];
+        }
+    }
+    // Reestablece la foto del usuario por la default eliminando la anterior
+    public function actionReestablecerFoto(){
+        \Yii::$app->response->format = 'json';
+        $model = $this->findModel(Yii::$app->user->id);
+        if($model->foto !== 'default.jpg' && $model->foto !== 'httpdefault.jpg'){
+            unlink($_SERVER['DOCUMENT_ROOT'].Yii::$app->request->baseUrl.'/fotos/'.$model->foto);
+        }
+        (strpos((substr($model->foto, 0, 4)), 'http') !== false) ? $model->foto = 'httpdefault.jpg' : $model->foto = 'default.jpg';
+        if($model->save()){
+            return ['status' => 'ok', 'mensaje' => 'Se ha eliminado la foto correctamente',
+            'url' => 'http://fcracks.com'.Yii::$app->request->baseUrl.'/fotos/'.$model->foto];
+        }else{
+            return ['status' => 'bad', 'mensaje' => 'No se pudo eliminar la foto, vuelve a intentarlo'];
+        }
+    }
+
+    // Esta función desactiva la cuenta cambiando el estado del usuario
+    public function actionDesactivarCuenta(){
+        \Yii::$app->response->format = 'json';
+        $model = $this->findModel(Yii::$app->user->id);
+        $model->estado = Estados::USUARIO_INACTIVO;
+        if($model->save()){
+            return ['status' => 'ok', 'mensaje' => 'Se ha eliminado tu cuenta satisfactoriamente'];
+        }else{
+            return ['status' => 'bad', 'mensaje' => 'No se ha podido eliminar tu cuenta, vuelve a intentarlo'];
         }
     }
 

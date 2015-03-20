@@ -59,16 +59,16 @@ class SiteController extends Controller
         // Resultado por queryBuilder:
         // $query = new Query;
         // $query->select('c.*')->distinct()->from("canchas c")->innerJoin("partidos p", "p.id_cancha = c.id_cancha AND p.estado = :estado AND (CONCAT(p.fecha, ' ', p.hora) > now())");
-        // return ['status' => 'ok', 'data' => $query->addParams([':estado' => Partidos::STATUS_DISPONIBLE])->orderBy(['c.nombre' => SORT_ASC])->all()];
+        // return ['status' => 'ok', 'data' => $query->addParams([':estado' => Estados::PARTIDO_DISPONIBLE])->orderBy(['c.nombre' => SORT_ASC])->all()];
 
         // Resultado por Data Access Object:
-        $sql = "SELECT DISTINCT c.* FROM canchas c, partidos p WHERE c.estado = 6 AND c.id_cancha = p.id_cancha AND p.estado = ".Partidos::STATUS_DISPONIBLE." AND CONCAT(p.fecha, ' ', p.hora) > now() ORDER BY c.nombre ASC";
+        $sql = "SELECT DISTINCT c.* FROM canchas c, partidos p WHERE c.estado = 6 AND c.id_cancha = p.id_cancha AND p.estado = ".Estados::PARTIDO_DISPONIBLE." AND CONCAT(p.fecha, ' ', p.hora) > now() ORDER BY c.nombre ASC";
         return ['status' => 'ok', 'data' => Yii::$app->db->createCommand($sql)->queryAll(), 'posiciones' => Posiciones::find()->all()];
 
         // Resultado por ActiveRecords:
         // return Canchas::find()->innerJoinWith([
         //         'partidos' => function ($query){
-        //             $query->where('partidos.estado = :estado')->addParams([':estado' => Partidos::STATUS_DISPONIBLE]);
+        //             $query->where('partidos.estado = :estado')->addParams([':estado' => Estados::PARTIDO_DISPONIBLE]);
         //         }
         //     ])->all();
     }
@@ -81,7 +81,7 @@ class SiteController extends Controller
         $sql = "SET lc_time_names = 'es_CO'";
         Yii::$app->db->createCommand($sql)->execute();
         $sql = "SELECT DISTINCT fecha dia, DATE_FORMAT(fecha, '%W %e de %M') label, (SELECT COUNT(*) FROM partidos WHERE fecha = dia AND id_cancha = :id_cancha) total FROM partidos WHERE estado = :estado AND id_cancha = :id_cancha AND CONCAT(fecha, ' ', hora) > now() ORDER BY fecha ASC ";
-        return ['status' => 'ok', 'data' => Yii::$app->db->createCommand($sql)->bindValue(':estado', Partidos::STATUS_DISPONIBLE)
+        return ['status' => 'ok', 'data' => Yii::$app->db->createCommand($sql)->bindValue(':estado', Estados::PARTIDO_DISPONIBLE)
                 ->bindValue(':id_cancha', $_POST['cancha'])->queryAll()];
     }
 
@@ -99,7 +99,7 @@ class SiteController extends Controller
             $sql = "SET lc_time_names = 'es_CO'";
             Yii::$app->db->createCommand($sql)->execute();
             $sql = "SELECT p.hora, DATE_FORMAT(p.hora, '%h:%i %p') label, p.blancos, p.negros, (p.blancos+p.negros) total, p.venta, (c.cupo_max-(p.blancos+p.negros)) disponibles FROM partidos p, canchas c WHERE p.id_cancha = c.id_cancha AND p.estado = :estado AND p.id_cancha = :id_cancha AND p.fecha = :fecha AND CONCAT(p.fecha, ' ', p.hora) > now() ORDER BY p.hora ASC";
-            $result = Yii::$app->db->createCommand($sql)->bindValue(':estado', Partidos::STATUS_DISPONIBLE)
+            $result = Yii::$app->db->createCommand($sql)->bindValue(':estado', Estados::PARTIDO_DISPONIBLE)
             ->bindValue(':id_cancha', $_POST['cancha'])
             ->bindValue(':fecha', $_POST['fecha'])->queryAll();
             // $sql = "SELECT cupo_max cupo_maximo FROM canchas WHERE id_cancha = :id_cancha";
@@ -155,12 +155,12 @@ class SiteController extends Controller
     //sistema. Regresa status = 'ok' y el accessToken si existe, de lo contrario status = 'bad'
     public function actionLogin()
     {//En el local se guardó el accessToken como _chrome-rel-back
-        $sql = "SELECT COUNT(*), accessToken, id_usuario FROM usuarios WHERE correo = :correo AND contrasena = :contrasena AND estado = :estado";
+        $sql = "SELECT accessToken, id_usuario FROM usuarios WHERE correo = :correo AND contrasena = :contrasena AND estado = :estado";
         $query = Yii::$app->db->createCommand($sql)
         ->bindValue(':correo', $_POST['correo'])
         ->bindValue(':contrasena', sha1($_POST['contrasena']))
         ->bindValue(':estado', 4);
-        $total = $query->queryScalar();
+        $total = $query->getRowCount();
         $access = $query->query();
         if($total > 0){
             return ['status' => 'ok', 'key' => $access];
@@ -174,9 +174,34 @@ class SiteController extends Controller
     public function actionRegistrarPerfil()
     {//En el local se guardó el accessToken como _chrome-rel-back
     	\Yii::$app->response->format = 'json';
-        $sql = "SELECT * FROM usuarios WHERE correo = '".$_POST['correo']."' OR usuario = '".$_POST['correo']."'";
-        $conteo = \Yii::$app->db->createCommand($sql)->query()->getRowCount();
-        if($conteo === 0){
+        if(isset($_POST['facebook'])){
+            $model = Usuario::find()->where("contrasena = sha1(md5('".$_POST['contrasena']."8888'))")->one();
+            if($model !== null){
+                if($model->estado === Estados::USUARIO_ACTIVO){
+                    return ['status' => 'ok', 'key' => $model->accessToken, 'id' => $model->id_usuario];
+                }elseif($model->estado === Estados::USUARIO_INACTIVO)){
+                    $nombre_foto = md5(time().rand()).'.jpg';
+                    if($model->foto !== 'httpdefault.jpg'){
+                        unlink($_SERVER['DOCUMENT_ROOT'].Yii::$app->request->baseUrl.'/fotos/'.$model->foto);
+                    }
+                    $model->foto = 'http'.$nombre_foto;
+                    $file = file($_POST['foto']);
+                    file_put_contents($_SERVER['DOCUMENT_ROOT'].Yii::$app->request->baseUrl.'/fotos/'.$model->foto, $file);
+                    $model->estado = Estados::USUARIO_ACTIVO;
+                    if($model->save()){
+                        return ['status' => 'ok', 'key' => $model->accessToken, 'id' => $model->id_usuario];
+                    }else{
+                        return ['status' => 'bad', 'mensaje' => 'Hubo un error restaurando la cuenta de facebook'];
+                    }
+                }
+            }else{
+                if(!isset($_POST['telefono'])){
+                    return ['status' => 'ok', 'key' => 'no'];
+                }
+            }
+        }
+        $model = Usuario::find()->where("correo = '".$_POST['correo']."' OR usuario = '".$_POST['correo']."'")->one();
+        if($model === null){
             $model = new Usuario();
             $model->nombres = $_POST['nombres'];
             $model->apellidos = $_POST['apellidos'];
@@ -185,10 +210,18 @@ class SiteController extends Controller
             }
             $model->correo = $_POST['correo'];
             $model->usuario = $_POST['correo'];
-            $model->contrasena = sha1($_POST['contrasena']);
-            $model->accessToken = md5(time());
             $model->sexo = $_POST['sexo'];
             $model->telefono = $_POST['telefono'];
+            $model->accessToken = md5(time().'csrf'.rand());
+            if(isset($_POST['foto'])){
+                $nombre_foto = md5(time().rand()).'.jpg';
+                $model->foto = 'http'.$nombre_foto;
+                $model->contrasena = sha1(md5($_POST['contrasena'].'8888'));
+                $file = file($_POST['foto']);
+                file_put_contents($_SERVER['DOCUMENT_ROOT'].Yii::$app->request->baseUrl.'/fotos/'.$model->foto, $file);
+            }else{
+                $model->contrasena = sha1($_POST['contrasena']);
+            }
             if(isset($_POST['posicion'])){
                 ($_POST['posicion'] === '') ? '' : $model->id_posicion = $_POST['posicion'];
             }
@@ -201,10 +234,37 @@ class SiteController extends Controller
                 Yii::$app->authManager->assign($role, $model->id_usuario);
                 return ['status' => 'ok', 'key' => $model->accessToken, 'id' => $model->id_usuario];
             }else{
+                if(isset($_POST['foto'])){
+                    unlink($_SERVER['DOCUMENT_ROOT'].Yii::$app->request->baseUrl.'/fotos/'.$nombre_foto);
+                }
                 return ['status' => 'bad', 'mensaje' => "No se pudo completar el registro, vuelve a intentarlo"];
             }
-        }else{
+        }elseif($model->estado === Estados::USUARIO_INACTIVO){
+            $model->nombres = $_POST['nombres'];
+            $model->apellidos = $_POST['apellidos'];
+            if(isset($_POST['fecha_nacimiento'])){
+                ($_POST['fecha_nacimiento'] === '') ? '' : $model->fecha_nacimiento = $_POST['fecha_nacimiento'];
+            }
+            $model->sexo = $_POST['sexo'];
+            $model->telefono = $_POST['telefono'];
+            $model->accessToken = md5(time().'csrf'.rand());
+            $model->contrasena = sha1($_POST['contrasena']);
+            if(isset($_POST['posicion'])){
+                ($_POST['posicion'] === '') ? '' : $model->id_posicion = $_POST['posicion'];
+            }
+            if(isset($_POST['pierna_habil'])){
+                ($_POST['pierna_habil'] === '') ? '' : $model->pierna_habil = $_POST['pierna_habil'];
+            }
+            $model->estado = Estados::USUARIO_ACTIVO;
+            if($model->save()){
+                return ['status' => 'ok', 'key' => $model->accessToken, 'id' => $model->id_usuario];
+            }else{
+                return ['status' => 'bad', 'mensaje' => 'Hubo un error restaurando la cuenta, vuelve a intentarlo'];
+            }
+        }elseif($model->estado === Estados::USUARIO_ACTIVO){
             return ['status' => 'bad', 'mensaje' => "Ya existe un usuario asociado con el correo especificado"];
+        }else{
+            return ['status' => 'bad', 'mensaje' => "Has sido bloqueado, ponte en contacto con nosotros para mayor información"];
         }
     }
 
@@ -214,10 +274,10 @@ class SiteController extends Controller
     {
         \Yii::$app->response->format = 'json';
         if($_POST['entidad'] === 'usuario'){
-            $sql = "SELECT nombres, apellidos, correo, perfil, (if(sexo = 'f','Mujer','Hombre')) sexo, telefono FROM usuarios WHERE id_usuario = ".$_POST['id'];
+            $sql = "SELECT u.nombres, u.apellidos, u.fecha_nacimiento, u.correo, u.perfil, (if(u.sexo = 'f','Mujer','Hombre')) sexo, u.telefono, p.posicion, u.pierna_habil, u.foto FROM usuarios u, posiciones p WHERE u.id_posicion = p.id_posicion AND u.id_usuario = ".$_POST['id'];
             $jugador = \Yii::$app->db->createCommand($sql)->queryOne();
         }else{
-            $sql = "SELECT i.nombres, i.apellidos, i.correo, 'Invitado' perfil, (if(i.sexo = 'f','Mujer','Hombre')) sexo, i.telefono, u.nombres resp_nombres, u.apellidos resp_apellidos, u.telefono tel FROM invitados i, invitaciones ic, usuarios u WHERE u.id_usuario = ic.id_usuario AND i.id_invitado = ic.id_invitado AND ic.id_partido = ".$_POST['partido']." AND i.id_invitado = ".$_POST['id'];
+            $sql = "SELECT i.nombres, i.apellidos, i.correo, 'Invitado' perfil, (if(i.sexo = 'f','Mujer','Hombre')) sexo, i.telefono, p.posicion, i.pierna_habil, u.nombres resp_nombres, u.apellidos resp_apellidos, u.telefono tel_responsable, 'guest.png' foto FROM invitados i, invitaciones ic, usuarios u, posiciones p WHERE i.id_posicion = p.id_posicion AND u.id_usuario = ic.id_usuario AND i.id_invitado = ic.id_invitado AND ic.id_partido = ".$_POST['partido']." AND i.id_invitado = ".$_POST['id'];
             $jugador = \Yii::$app->db->createCommand($sql)->queryOne();
         }
         return ['status' => 'ok', 'data' => $jugador, 'entidad' => $_POST['entidad']];
