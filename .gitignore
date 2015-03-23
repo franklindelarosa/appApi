@@ -27,3 +27,4 @@ phpunit.phar
 /phpunit.xml
 
 sftp-config.json
+ftpsync.settings

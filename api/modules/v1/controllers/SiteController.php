@@ -179,7 +179,7 @@ class SiteController extends Controller
             if($model !== null){
                 if($model->estado === Estados::USUARIO_ACTIVO){
                     return ['status' => 'ok', 'key' => $model->accessToken, 'id' => $model->id_usuario];
-                }elseif($model->estado === Estados::USUARIO_INACTIVO)){
+                }elseif($model->estado === Estados::USUARIO_INACTIVO){
                     $nombre_foto = md5(time().rand()).'.jpg';
                     if($model->foto !== 'httpdefault.jpg'){
                         unlink($_SERVER['DOCUMENT_ROOT'].Yii::$app->request->baseUrl.'/fotos/'.$model->foto);
@@ -205,8 +205,8 @@ class SiteController extends Controller
             $model = new Usuario();
             $model->nombres = $_POST['nombres'];
             $model->apellidos = $_POST['apellidos'];
-            if(isset($_POST['fecha_nacimiento'])){
-                ($_POST['fecha_nacimiento'] === '') ? '' : $model->fecha_nacimiento = $_POST['fecha_nacimiento'];
+            if(isset($_POST['fecha_nacimiento']) && $_POST['fecha_nacimiento'] !== ''){
+                $model->fecha_nacimiento = $_POST['fecha_nacimiento'];
             }
             $model->correo = $_POST['correo'];
             $model->usuario = $_POST['correo'];
@@ -222,11 +222,11 @@ class SiteController extends Controller
             }else{
                 $model->contrasena = sha1($_POST['contrasena']);
             }
-            if(isset($_POST['posicion'])){
-                ($_POST['posicion'] === '') ? '' : $model->id_posicion = $_POST['posicion'];
+            if(isset($_POST['posicion']) && $_POST['posicion'] !== ''){
+                $model->id_posicion = $_POST['posicion'];
             }
-            if(isset($_POST['pierna_habil'])){
-                ($_POST['pierna_habil'] === '') ? '' : $model->pierna_habil = $_POST['pierna_habil'];
+            if(isset($_POST['pierna_habil']) && $_POST['pierna_habil'] !== ''){
+                $model->pierna_habil = $_POST['pierna_habil'];
             }
             $model->perfil = 'Jugador';
             if($model->save()){
@@ -239,32 +239,36 @@ class SiteController extends Controller
                 }
                 return ['status' => 'bad', 'mensaje' => "No se pudo completar el registro, vuelve a intentarlo"];
             }
-        }elseif($model->estado === Estados::USUARIO_INACTIVO){
-            $model->nombres = $_POST['nombres'];
-            $model->apellidos = $_POST['apellidos'];
-            if(isset($_POST['fecha_nacimiento'])){
-                ($_POST['fecha_nacimiento'] === '') ? '' : $model->fecha_nacimiento = $_POST['fecha_nacimiento'];
-            }
-            $model->sexo = $_POST['sexo'];
-            $model->telefono = $_POST['telefono'];
-            $model->accessToken = md5(time().'csrf'.rand());
-            $model->contrasena = sha1($_POST['contrasena']);
-            if(isset($_POST['posicion'])){
-                ($_POST['posicion'] === '') ? '' : $model->id_posicion = $_POST['posicion'];
-            }
-            if(isset($_POST['pierna_habil'])){
-                ($_POST['pierna_habil'] === '') ? '' : $model->pierna_habil = $_POST['pierna_habil'];
-            }
-            $model->estado = Estados::USUARIO_ACTIVO;
-            if($model->save()){
-                return ['status' => 'ok', 'key' => $model->accessToken, 'id' => $model->id_usuario];
+        }elseif($model->estado === Estados::USUARIO_INACTIVO || isset($_POST['facebook'])){
+            if($model->estado === Estados::USUARIO_BLOQUEADO){
+                return ['status' => 'bad', 'mensaje' => "Has sido bloqueado, ponte en contacto con nosotros para mayor información"];
             }else{
-                return ['status' => 'bad', 'mensaje' => 'Hubo un error restaurando la cuenta, vuelve a intentarlo'];
+                $model->nombres = $_POST['nombres'];
+                $model->apellidos = $_POST['apellidos'];
+                if(isset($_POST['fecha_nacimiento']) && $_POST['fecha_nacimiento'] !== ''){
+                    $model->fecha_nacimiento = $_POST['fecha_nacimiento'];
+                }
+                $model->sexo = $_POST['sexo'];
+                $model->telefono = $_POST['telefono'];
+                $model->accessToken = md5(time().'csrf'.rand());
+                (isset($_POST['facebook'])) ? $model->contrasena = sha1(md5($_POST['contrasena'].'8888')) : $model->contrasena = sha1($_POST['contrasena']);
+                if(isset($_POST['posicion']) && $_POST['posicion'] !== ''){
+                    $model->id_posicion = $_POST['posicion'];
+                }
+                if(isset($_POST['pierna_habil']) && $_POST['pierna_habil'] !== ''){
+                    $model->pierna_habil = $_POST['pierna_habil'];
+                }
+                $model->estado = Estados::USUARIO_ACTIVO;
+                if($model->save()){
+                    return ['status' => 'ok', 'key' => $model->accessToken, 'id' => $model->id_usuario];
+                }else{
+                    return ['status' => 'bad', 'mensaje' => 'Hubo un error restaurando la cuenta, vuelve a intentarlo'];
+                }
             }
-        }elseif($model->estado === Estados::USUARIO_ACTIVO){
-            return ['status' => 'bad', 'mensaje' => "Ya existe un usuario asociado con el correo especificado"];
-        }else{
+        }elseif($model->estado === Estados::USUARIO_BLOQUEADO){
             return ['status' => 'bad', 'mensaje' => "Has sido bloqueado, ponte en contacto con nosotros para mayor información"];
+        }else{
+            return ['status' => 'bad', 'mensaje' => "Ya existe un usuario asociado con el correo especificado"];
         }
     }
 

@@ -26,6 +26,7 @@ class Estados extends \yii\db\ActiveRecord
     const PARTIDO_CANCELADO = 3;
     const USUARIO_ACTIVO = 4;
     const USUARIO_INACTIVO = 5;
+    const USUARIO_BLOQUEADO = 8;
     const CANCHA_ACTIVA = 6;
     const CANCHA_INACTIVA = 7;
     
