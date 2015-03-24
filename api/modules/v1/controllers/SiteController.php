@@ -179,21 +179,21 @@ class SiteController extends Controller
             if($model !== null){
                 if($model->estado === Estados::USUARIO_ACTIVO){
                     return ['status' => 'ok', 'key' => $model->accessToken, 'id' => $model->id_usuario];
-                }elseif($model->estado === Estados::USUARIO_INACTIVO){
-                    $nombre_foto = md5(time().rand()).'.jpg';
-                    if($model->foto !== 'httpdefault.jpg'){
-                        unlink($_SERVER['DOCUMENT_ROOT'].Yii::$app->request->baseUrl.'/fotos/'.$model->foto);
-                    }
-                    $model->foto = 'http'.$nombre_foto;
-                    $file = file($_POST['foto']);
-                    file_put_contents($_SERVER['DOCUMENT_ROOT'].Yii::$app->request->baseUrl.'/fotos/'.$model->foto, $file);
-                    $model->estado = Estados::USUARIO_ACTIVO;
-                    if($model->save()){
-                        return ['status' => 'ok', 'key' => $model->accessToken, 'id' => $model->id_usuario];
-                    }else{
-                        return ['status' => 'bad', 'mensaje' => 'Hubo un error restaurando la cuenta de facebook'];
-                    }
-                }
+                }//elseif($model->estado === Estados::USUARIO_INACTIVO){
+                //     $nombre_foto = md5(time().rand()).'.jpg';
+                //     if($model->foto !== 'httpdefault.jpg'){
+                //         unlink($_SERVER['DOCUMENT_ROOT'].Yii::$app->request->baseUrl.'/fotos/'.$model->foto);
+                //     }
+                //     $model->foto = 'http'.$nombre_foto;
+                //     $file = file($_POST['foto']);
+                //     file_put_contents($_SERVER['DOCUMENT_ROOT'].Yii::$app->request->baseUrl.'/fotos/'.$model->foto, $file);
+                //     $model->estado = Estados::USUARIO_ACTIVO;
+                //     if($model->save()){
+                //         return ['status' => 'ok', 'key' => $model->accessToken, 'id' => $model->id_usuario];
+                //     }else{
+                //         return ['status' => 'bad', 'mensaje' => 'Hubo un error restaurando la cuenta de facebook'];
+                //     }
+                // }
             }else{
                 if(!isset($_POST['telefono'])){
                     return ['status' => 'ok', 'key' => 'no'];
@@ -239,31 +239,39 @@ class SiteController extends Controller
                 }
                 return ['status' => 'bad', 'mensaje' => "No se pudo completar el registro, vuelve a intentarlo"];
             }
-        }elseif($model->estado === Estados::USUARIO_INACTIVO || isset($_POST['facebook'])){
-            if($model->estado === Estados::USUARIO_BLOQUEADO){
-                return ['status' => 'bad', 'mensaje' => "Has sido bloqueado, ponte en contacto con nosotros para mayor información"];
+        }elseif($model->estado === Estados::USUARIO_INACTIVO){
+            $model->nombres = $_POST['nombres'];
+            $model->apellidos = $_POST['apellidos'];
+            if(isset($_POST['fecha_nacimiento']) && $_POST['fecha_nacimiento'] !== ''){
+                $model->fecha_nacimiento = $_POST['fecha_nacimiento'];
+            }
+            $model->sexo = $_POST['sexo'];
+            $model->telefono = $_POST['telefono'];
+            $model->accessToken = md5(time().'csrf'.rand());
+            if(isset($_POST['facebook'])){
+                $model->contrasena = sha1(md5($_POST['contrasena'].'8888'));
+                $nombre_foto = md5(time().rand()).'.jpg';
+                if($model->foto !== 'httpdefault.jpg'){
+                    unlink($_SERVER['DOCUMENT_ROOT'].Yii::$app->request->baseUrl.'/fotos/'.$model->foto);
+                }
+                $model->foto = 'http'.$nombre_foto;
+                $file = file($_POST['foto']);
+                file_put_contents($_SERVER['DOCUMENT_ROOT'].Yii::$app->request->baseUrl.'/fotos/'.$model->foto, $file);
             }else{
-                $model->nombres = $_POST['nombres'];
-                $model->apellidos = $_POST['apellidos'];
-                if(isset($_POST['fecha_nacimiento']) && $_POST['fecha_nacimiento'] !== ''){
-                    $model->fecha_nacimiento = $_POST['fecha_nacimiento'];
-                }
-                $model->sexo = $_POST['sexo'];
-                $model->telefono = $_POST['telefono'];
-                $model->accessToken = md5(time().'csrf'.rand());
-                (isset($_POST['facebook'])) ? $model->contrasena = sha1(md5($_POST['contrasena'].'8888')) : $model->contrasena = sha1($_POST['contrasena']);
-                if(isset($_POST['posicion']) && $_POST['posicion'] !== ''){
-                    $model->id_posicion = $_POST['posicion'];
-                }
-                if(isset($_POST['pierna_habil']) && $_POST['pierna_habil'] !== ''){
-                    $model->pierna_habil = $_POST['pierna_habil'];
-                }
-                $model->estado = Estados::USUARIO_ACTIVO;
-                if($model->save()){
-                    return ['status' => 'ok', 'key' => $model->accessToken, 'id' => $model->id_usuario];
-                }else{
-                    return ['status' => 'bad', 'mensaje' => 'Hubo un error restaurando la cuenta, vuelve a intentarlo'];
-                }
+                $model->contrasena = sha1($_POST['contrasena']);
+                $model->foto = 'default.jpg';
+            }
+            if(isset($_POST['posicion']) && $_POST['posicion'] !== ''){
+                $model->id_posicion = $_POST['posicion'];
+            }
+            if(isset($_POST['pierna_habil']) && $_POST['pierna_habil'] !== ''){
+                $model->pierna_habil = $_POST['pierna_habil'];
+            }
+            $model->estado = Estados::USUARIO_ACTIVO;
+            if($model->save()){
+                return ['status' => 'ok', 'key' => $model->accessToken, 'id' => $model->id_usuario];
+            }else{
+                return ['status' => 'bad', 'mensaje' => 'Hubo un error restaurando la cuenta, vuelve a intentarlo'];
             }
         }elseif($model->estado === Estados::USUARIO_BLOQUEADO){
             return ['status' => 'bad', 'mensaje' => "Has sido bloqueado, ponte en contacto con nosotros para mayor información"];

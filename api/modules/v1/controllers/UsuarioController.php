@@ -122,8 +122,8 @@ class UsuarioController extends Controller
         $transaction = \Yii::$app->db->beginTransaction();
         $user = Usuario::findOne(Yii::$app->user->id);
         try {
-            $sql = "SELECT COUNT(*) FROM usuarios_partidos WHERE id_usuario = ".Yii::$app->user->id." AND id_partido = ".$_POST['partido'];
-            $conteo = \Yii::$app->db->createCommand($sql)->queryScalar();
+            $sql = "SELECT * FROM usuarios_partidos WHERE id_usuario = ".Yii::$app->user->id." AND id_partido = ".$_POST['partido'];
+            $conteo = \Yii::$app->db->createCommand($sql)->getRowCount();
             if($conteo < 1){
                 $sql = "SELECT fecha, hora FROM partidos WHERE id_partido = ".$_POST['partido'];
                 $tiempo = \Yii::$app->db->createCommand($sql)->queryAll();
