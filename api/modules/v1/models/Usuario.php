@@ -22,6 +22,7 @@ use Yii;
  * @property string $pierna_habil
  * @property string $foto
  * @property string $accessToken
+ * @property string $authPass
  *
  * @property Invitaciones[] $invitaciones
  * @property Estados $estado
@@ -50,13 +51,14 @@ class Usuario extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
             [['estado', 'id_posicion'], 'integer'],
             [['fecha_nacimiento'], 'safe'],
             [['nombres', 'apellidos', 'usuario', 'perfil', 'correo'], 'string', 'max' => 45],
-            [['contrasena', 'accessToken'], 'string', 'max' => 70],
+            [['contrasena', 'accessToken'], 'string', 'max' => 100],
             [['sexo'], 'string', 'max' => 1],
             [['telefono'], 'string', 'max' => 20],
             [['usuario'], 'unique'],
             [['correo'], 'unique'],
             [['pierna_habil'], 'string', 'max' => 15],
             [['foto'], 'string', 'max' => 100],
+            [['authPass'], 'string', 'max' => 200],
             [['accessToken'], 'unique']
         ];
     }
@@ -82,6 +84,7 @@ class Usuario extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
             'pierna_habil' => 'Pierna Hábil',
             'foto' => 'Foto',
             'accessToken' => 'Access Token',
+            'authPass' => 'Llave de autorización',
         ];
     }
 

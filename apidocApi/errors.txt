@@ -1,0 +1,829 @@
+Array
+(
+    [0] => Array
+        (
+            [line] => 24
+            [file] => api\common\controllers\SiteController.php
+            [message] => No docblock for element 'app\api\modules\v1\controllers\SiteController'
+        )
+
+    [1] => Array
+        (
+            [line] => 26
+            [file] => api\common\controllers\SiteController.php
+            [message] => No docblock for element 'behaviors'
+        )
+
+    [2] => Array
+        (
+            [line] => 54
+            [file] => api\common\controllers\SiteController.php
+            [message] => No docblock for element 'actionListarCanchas'
+        )
+
+    [3] => Array
+        (
+            [line] => 78
+            [file] => api\common\controllers\SiteController.php
+            [message] => No docblock for element 'actionCanchaDias'
+        )
+
+    [4] => Array
+        (
+            [line] => 93
+            [file] => api\common\controllers\SiteController.php
+            [message] => No docblock for element 'actionCanchaHoras'
+        )
+
+    [5] => Array
+        (
+            [line] => 116
+            [file] => api\common\controllers\SiteController.php
+            [message] => No docblock for element 'buscarPartidoPorTiempo'
+        )
+
+    [6] => Array
+        (
+            [line] => 130
+            [file] => api\common\controllers\SiteController.php
+            [message] => No docblock for element 'actionEquipos'
+        )
+
+    [7] => Array
+        (
+            [line] => 156
+            [file] => api\common\controllers\SiteController.php
+            [message] => No docblock for element 'actionLogin'
+        )
+
+    [8] => Array
+        (
+            [line] => 174
+            [file] => api\common\controllers\SiteController.php
+            [message] => No docblock for element 'actionRegistrarPerfil'
+        )
+
+    [9] => Array
+        (
+            [line] => 277
+            [file] => api\common\controllers\SiteController.php
+            [message] => No docblock for element 'actionInformacionJugador'
+        )
+
+    [10] => Array
+        (
+            [line] => 291
+            [file] => api\common\controllers\SiteController.php
+            [message] => No docblock for element 'findModel'
+        )
+
+    [11] => Array
+        (
+            [line] => 23
+            [file] => api\common\controllers\UsuarioController.php
+            [message] => No docblock for element 'app\api\modules\v1\controllers\UsuarioController'
+        )
+
+    [12] => Array
+        (
+            [line] => 25
+            [file] => api\common\controllers\UsuarioController.php
+            [message] => No docblock for element 'behaviors'
+        )
+
+    [13] => Array
+        (
+            [line] => 74
+            [file] => api\common\controllers\UsuarioController.php
+            [message] => No docblock for element 'actionQuienSoy'
+        )
+
+    [14] => Array
+        (
+            [line] => 81
+            [file] => api\common\controllers\UsuarioController.php
+            [message] => No docblock for element 'actionSacarJugador'
+        )
+
+    [15] => Array
+        (
+            [line] => 120
+            [file] => api\common\controllers\UsuarioController.php
+            [message] => No docblock for element 'actionRegistrarUsuario'
+        )
+
+    [16] => Array
+        (
+            [line] => 171
+            [file] => api\common\controllers\UsuarioController.php
+            [message] => No docblock for element 'actionRegistrarInvitado'
+        )
+
+    [17] => Array
+        (
+            [line] => 210
+            [file] => api\common\controllers\UsuarioController.php
+            [message] => No docblock for element 'actionActualizarPerfil'
+        )
+
+    [18] => Array
+        (
+            [line] => 242
+            [file] => api\common\controllers\UsuarioController.php
+            [message] => No docblock for element 'actionInfoPerfil'
+        )
+
+    [19] => Array
+        (
+            [line] => 276
+            [file] => api\common\controllers\UsuarioController.php
+            [message] => No docblock for element 'actionActualizarFoto'
+        )
+
+    [20] => Array
+        (
+            [line] => 296
+            [file] => api\common\controllers\UsuarioController.php
+            [message] => No docblock for element 'actionReestablecerFoto'
+        )
+
+    [21] => Array
+        (
+            [line] => 312
+            [file] => api\common\controllers\UsuarioController.php
+            [message] => No docblock for element 'actionEliminarCuenta'
+        )
+
+    [22] => Array
+        (
+            [line] => 324
+            [file] => api\common\controllers\UsuarioController.php
+            [message] => No docblock for element 'findModel'
+        )
+
+    [23] => Array
+        (
+            [line] => 66
+            [file] => api\common\models\Canchas.php
+            [message] => No docblock for element 'getIdEstado'
+        )
+
+    [24] => Array
+        (
+            [line] => 71
+            [file] => api\common\models\Canchas.php
+            [message] => No docblock for element 'getNombrearchivo'
+        )
+
+    [25] => Array
+        (
+            [line] => 45
+            [file] => api\common\models\Consulta.php
+            [message] => No docblock for element 'primaryKey'
+        )
+
+    [26] => Array
+        (
+            [line] => 33
+            [file] => api\common\models\Estados.php
+            [message] => No docblock for element 'tableName'
+        )
+
+    [27] => Array
+        (
+            [line] => 75
+            [file] => api\common\models\Partidos.php
+            [message] => No docblock for element 'NameCancha'
+        )
+
+    [28] => Array
+        (
+            [line] => 80
+            [file] => api\common\models\Partidos.php
+            [message] => No docblock for element 'getIdEstado'
+        )
+
+    [29] => Array
+        (
+            [line] => 85
+            [file] => api\common\models\Partidos.php
+            [message] => No docblock for element 'NameEstado'
+        )
+
+    [30] => Array
+        (
+            [line] => 33
+            [file] => api\common\models\Usuario.php
+            [message] => No docblock for element '$authKey'
+        )
+
+    [31] => Array
+        (
+            [line] => 33
+            [file] => api\common\models\Usuario.php
+            [message] => No short description for element '$authKey'
+        )
+
+    [32] => Array
+        (
+            [line] => 96
+            [file] => api\common\models\Usuario.php
+            [message] => No docblock for element 'getIdEstado'
+        )
+
+    [33] => Array
+        (
+            [line] => 117
+            [file] => api\common\models\Usuario.php
+            [message] => No docblock for element 'getId'
+        )
+
+    [34] => Array
+        (
+            [line] => 122
+            [file] => api\common\models\Usuario.php
+            [message] => No docblock for element 'findIdentity'
+        )
+
+    [35] => Array
+        (
+            [line] => 132
+            [file] => api\common\models\Usuario.php
+            [message] => No docblock for element 'findIdentityByAccessToken'
+        )
+
+    [36] => Array
+        (
+            [line] => 142
+            [file] => api\common\models\Usuario.php
+            [message] => No docblock for element 'getUsername'
+        )
+
+    [37] => Array
+        (
+            [line] => 146
+            [file] => api\common\models\Usuario.php
+            [message] => No docblock for element 'getAuthKey'
+        )
+
+    [38] => Array
+        (
+            [line] => 151
+            [file] => api\common\models\Usuario.php
+            [message] => No docblock for element 'validateAuthKey'
+        )
+
+    [39] => Array
+        (
+            [line] => 156
+            [file] => api\common\models\Usuario.php
+            [message] => No docblock for element 'validatePassword'
+        )
+
+    [40] => Array
+        (
+            [line] => 161
+            [file] => api\common\models\Usuario.php
+            [message] => No docblock for element 'findByUsername'
+        )
+
+    [41] => Array
+        (
+            [line] => 5
+            [file] => api\modules\v1\Module.php
+            [message] => No docblock for element 'app\api\modules\v1\Module'
+        )
+
+    [42] => Array
+        (
+            [line] => 7
+            [file] => api\modules\v1\Module.php
+            [message] => No docblock for element '$controllerNamespace'
+        )
+
+    [43] => Array
+        (
+            [line] => 7
+            [file] => api\modules\v1\Module.php
+            [message] => No short description for element '$controllerNamespace'
+        )
+
+    [44] => Array
+        (
+            [line] => 8
+            [file] => api\modules\v1\Module.php
+            [message] => No docblock for element '$modelNamespace'
+        )
+
+    [45] => Array
+        (
+            [line] => 8
+            [file] => api\modules\v1\Module.php
+            [message] => No short description for element '$modelNamespace'
+        )
+
+    [46] => Array
+        (
+            [line] => 10
+            [file] => api\modules\v1\Module.php
+            [message] => No docblock for element 'init'
+        )
+
+    [47] => Array
+        (
+            [line] => 24
+            [file] => api\modules\v1\controllers\SiteController.php
+            [message] => No docblock for element 'app\api\modules\v1\controllers\SiteController'
+        )
+
+    [48] => Array
+        (
+            [line] => 24
+            [file] => api\modules\v1\controllers\SiteController.php
+            [message] => No docblock for element 'app\api\modules\v1\controllers\SiteController'
+        )
+
+    [49] => Array
+        (
+            [line] => 26
+            [file] => api\modules\v1\controllers\SiteController.php
+            [message] => No docblock for element 'behaviors'
+        )
+
+    [50] => Array
+        (
+            [line] => 26
+            [file] => api\modules\v1\controllers\SiteController.php
+            [message] => No docblock for element 'behaviors'
+        )
+
+    [51] => Array
+        (
+            [line] => 54
+            [file] => api\modules\v1\controllers\SiteController.php
+            [message] => No docblock for element 'actionListarCanchas'
+        )
+
+    [52] => Array
+        (
+            [line] => 54
+            [file] => api\modules\v1\controllers\SiteController.php
+            [message] => No docblock for element 'actionListarCanchas'
+        )
+
+    [53] => Array
+        (
+            [line] => 78
+            [file] => api\modules\v1\controllers\SiteController.php
+            [message] => No docblock for element 'actionCanchaDias'
+        )
+
+    [54] => Array
+        (
+            [line] => 78
+            [file] => api\modules\v1\controllers\SiteController.php
+            [message] => No docblock for element 'actionCanchaDias'
+        )
+
+    [55] => Array
+        (
+            [line] => 93
+            [file] => api\modules\v1\controllers\SiteController.php
+            [message] => No docblock for element 'actionCanchaHoras'
+        )
+
+    [56] => Array
+        (
+            [line] => 93
+            [file] => api\modules\v1\controllers\SiteController.php
+            [message] => No docblock for element 'actionCanchaHoras'
+        )
+
+    [57] => Array
+        (
+            [line] => 116
+            [file] => api\modules\v1\controllers\SiteController.php
+            [message] => No docblock for element 'buscarPartidoPorTiempo'
+        )
+
+    [58] => Array
+        (
+            [line] => 116
+            [file] => api\modules\v1\controllers\SiteController.php
+            [message] => No docblock for element 'buscarPartidoPorTiempo'
+        )
+
+    [59] => Array
+        (
+            [line] => 130
+            [file] => api\modules\v1\controllers\SiteController.php
+            [message] => No docblock for element 'actionEquipos'
+        )
+
+    [60] => Array
+        (
+            [line] => 130
+            [file] => api\modules\v1\controllers\SiteController.php
+            [message] => No docblock for element 'actionEquipos'
+        )
+
+    [61] => Array
+        (
+            [line] => 156
+            [file] => api\modules\v1\controllers\SiteController.php
+            [message] => No docblock for element 'actionLogin'
+        )
+
+    [62] => Array
+        (
+            [line] => 156
+            [file] => api\modules\v1\controllers\SiteController.php
+            [message] => No docblock for element 'actionLogin'
+        )
+
+    [63] => Array
+        (
+            [line] => 174
+            [file] => api\modules\v1\controllers\SiteController.php
+            [message] => No docblock for element 'actionRegistrarPerfil'
+        )
+
+    [64] => Array
+        (
+            [line] => 174
+            [file] => api\modules\v1\controllers\SiteController.php
+            [message] => No docblock for element 'actionRegistrarPerfil'
+        )
+
+    [65] => Array
+        (
+            [line] => 281
+            [file] => api\modules\v1\controllers\SiteController.php
+            [message] => Undefined parameter documented: $id in actionInformacionJugador().
+        )
+
+    [66] => Array
+        (
+            [line] => 281
+            [file] => api\modules\v1\controllers\SiteController.php
+            [message] => Undefined parameter documented: $id in actionInformacionJugador().
+        )
+
+    [67] => Array
+        (
+            [line] => 300
+            [file] => api\modules\v1\controllers\SiteController.php
+            [message] => No docblock for element 'findModel'
+        )
+
+    [68] => Array
+        (
+            [line] => 23
+            [file] => api\modules\v1\controllers\UsuarioController.php
+            [message] => No docblock for element 'app\api\modules\v1\controllers\UsuarioController'
+        )
+
+    [69] => Array
+        (
+            [line] => 25
+            [file] => api\modules\v1\controllers\UsuarioController.php
+            [message] => No docblock for element 'behaviors'
+        )
+
+    [70] => Array
+        (
+            [line] => 74
+            [file] => api\modules\v1\controllers\UsuarioController.php
+            [message] => No docblock for element 'actionQuienSoy'
+        )
+
+    [71] => Array
+        (
+            [line] => 81
+            [file] => api\modules\v1\controllers\UsuarioController.php
+            [message] => No docblock for element 'actionSacarJugador'
+        )
+
+    [72] => Array
+        (
+            [line] => 120
+            [file] => api\modules\v1\controllers\UsuarioController.php
+            [message] => No docblock for element 'actionRegistrarUsuario'
+        )
+
+    [73] => Array
+        (
+            [line] => 171
+            [file] => api\modules\v1\controllers\UsuarioController.php
+            [message] => No docblock for element 'actionRegistrarInvitado'
+        )
+
+    [74] => Array
+        (
+            [line] => 210
+            [file] => api\modules\v1\controllers\UsuarioController.php
+            [message] => No docblock for element 'actionActualizarPerfil'
+        )
+
+    [75] => Array
+        (
+            [line] => 242
+            [file] => api\modules\v1\controllers\UsuarioController.php
+            [message] => No docblock for element 'actionInfoPerfil'
+        )
+
+    [76] => Array
+        (
+            [line] => 276
+            [file] => api\modules\v1\controllers\UsuarioController.php
+            [message] => No docblock for element 'actionActualizarFoto'
+        )
+
+    [77] => Array
+        (
+            [line] => 296
+            [file] => api\modules\v1\controllers\UsuarioController.php
+            [message] => No docblock for element 'actionReestablecerFoto'
+        )
+
+    [78] => Array
+        (
+            [line] => 312
+            [file] => api\modules\v1\controllers\UsuarioController.php
+            [message] => No docblock for element 'actionEliminarCuenta'
+        )
+
+    [79] => Array
+        (
+            [line] => 324
+            [file] => api\modules\v1\controllers\UsuarioController.php
+            [message] => No docblock for element 'findModel'
+        )
+
+    [80] => Array
+        (
+            [line] => 26
+            [file] => api\modules\v1\models\Canchas.php
+            [message] => Method tableName has no parent to inherit from in app\api\modules\v1\models\Canchas.
+        )
+
+    [81] => Array
+        (
+            [line] => 34
+            [file] => api\modules\v1\models\Canchas.php
+            [message] => Method rules has no parent to inherit from in app\api\modules\v1\models\Canchas.
+        )
+
+    [82] => Array
+        (
+            [line] => 46
+            [file] => api\modules\v1\models\Canchas.php
+            [message] => Method attributeLabels has no parent to inherit from in app\api\modules\v1\models\Canchas.
+        )
+
+    [83] => Array
+        (
+            [line] => 66
+            [file] => api\modules\v1\models\Canchas.php
+            [message] => No docblock for element 'getIdEstado'
+        )
+
+    [84] => Array
+        (
+            [line] => 71
+            [file] => api\modules\v1\models\Canchas.php
+            [message] => No docblock for element 'getNombrearchivo'
+        )
+
+    [85] => Array
+        (
+            [line] => 27
+            [file] => api\modules\v1\models\Consulta.php
+            [message] => Method tableName has no parent to inherit from in app\api\modules\v1\models\Consulta.
+        )
+
+    [86] => Array
+        (
+            [line] => 35
+            [file] => api\modules\v1\models\Consulta.php
+            [message] => Method rules has no parent to inherit from in app\api\modules\v1\models\Consulta.
+        )
+
+    [87] => Array
+        (
+            [line] => 45
+            [file] => api\modules\v1\models\Consulta.php
+            [message] => No docblock for element 'primaryKey'
+        )
+
+    [88] => Array
+        (
+            [line] => 53
+            [file] => api\modules\v1\models\Consulta.php
+            [message] => Method attributeLabels has no parent to inherit from in app\api\modules\v1\models\Consulta.
+        )
+
+    [89] => Array
+        (
+            [line] => 33
+            [file] => api\modules\v1\models\Estados.php
+            [message] => No docblock for element 'tableName'
+        )
+
+    [90] => Array
+        (
+            [line] => 41
+            [file] => api\modules\v1\models\Estados.php
+            [message] => Method rules has no parent to inherit from in app\api\modules\v1\models\Estados.
+        )
+
+    [91] => Array
+        (
+            [line] => 54
+            [file] => api\modules\v1\models\Estados.php
+            [message] => Method attributeLabels has no parent to inherit from in app\api\modules\v1\models\Estados.
+        )
+
+    [92] => Array
+        (
+            [line] => 27
+            [file] => api\modules\v1\models\Invitados.php
+            [message] => Method tableName has no parent to inherit from in app\api\modules\v1\models\Invitados.
+        )
+
+    [93] => Array
+        (
+            [line] => 35
+            [file] => api\modules\v1\models\Invitados.php
+            [message] => Method rules has no parent to inherit from in app\api\modules\v1\models\Invitados.
+        )
+
+    [94] => Array
+        (
+            [line] => 51
+            [file] => api\modules\v1\models\Invitados.php
+            [message] => Method attributeLabels has no parent to inherit from in app\api\modules\v1\models\Invitados.
+        )
+
+    [95] => Array
+        (
+            [line] => 29
+            [file] => api\modules\v1\models\Partidos.php
+            [message] => Method tableName has no parent to inherit from in app\api\modules\v1\models\Partidos.
+        )
+
+    [96] => Array
+        (
+            [line] => 37
+            [file] => api\modules\v1\models\Partidos.php
+            [message] => Method rules has no parent to inherit from in app\api\modules\v1\models\Partidos.
+        )
+
+    [97] => Array
+        (
+            [line] => 50
+            [file] => api\modules\v1\models\Partidos.php
+            [message] => Method attributeLabels has no parent to inherit from in app\api\modules\v1\models\Partidos.
+        )
+
+    [98] => Array
+        (
+            [line] => 75
+            [file] => api\modules\v1\models\Partidos.php
+            [message] => No docblock for element 'NameCancha'
+        )
+
+    [99] => Array
+        (
+            [line] => 80
+            [file] => api\modules\v1\models\Partidos.php
+            [message] => No docblock for element 'getIdEstado'
+        )
+
+    [100] => Array
+        (
+            [line] => 85
+            [file] => api\modules\v1\models\Partidos.php
+            [message] => No docblock for element 'NameEstado'
+        )
+
+    [101] => Array
+        (
+            [line] => 20
+            [file] => api\modules\v1\models\Posiciones.php
+            [message] => Method tableName has no parent to inherit from in app\api\modules\v1\models\Posiciones.
+        )
+
+    [102] => Array
+        (
+            [line] => 28
+            [file] => api\modules\v1\models\Posiciones.php
+            [message] => Method rules has no parent to inherit from in app\api\modules\v1\models\Posiciones.
+        )
+
+    [103] => Array
+        (
+            [line] => 39
+            [file] => api\modules\v1\models\Posiciones.php
+            [message] => Method attributeLabels has no parent to inherit from in app\api\modules\v1\models\Posiciones.
+        )
+
+    [104] => Array
+        (
+            [line] => 33
+            [file] => api\modules\v1\models\Usuario.php
+            [message] => No docblock for element '$authKey'
+        )
+
+    [105] => Array
+        (
+            [line] => 33
+            [file] => api\modules\v1\models\Usuario.php
+            [message] => No short description for element '$authKey'
+        )
+
+    [106] => Array
+        (
+            [line] => 38
+            [file] => api\modules\v1\models\Usuario.php
+            [message] => Method tableName has no parent to inherit from in app\api\modules\v1\models\Usuario.
+        )
+
+    [107] => Array
+        (
+            [line] => 46
+            [file] => api\modules\v1\models\Usuario.php
+            [message] => Method rules has no parent to inherit from in app\api\modules\v1\models\Usuario.
+        )
+
+    [108] => Array
+        (
+            [line] => 67
+            [file] => api\modules\v1\models\Usuario.php
+            [message] => Method attributeLabels has no parent to inherit from in app\api\modules\v1\models\Usuario.
+        )
+
+    [109] => Array
+        (
+            [line] => 96
+            [file] => api\modules\v1\models\Usuario.php
+            [message] => No docblock for element 'getIdEstado'
+        )
+
+    [110] => Array
+        (
+            [line] => 117
+            [file] => api\modules\v1\models\Usuario.php
+            [message] => No docblock for element 'getId'
+        )
+
+    [111] => Array
+        (
+            [line] => 122
+            [file] => api\modules\v1\models\Usuario.php
+            [message] => No docblock for element 'findIdentity'
+        )
+
+    [112] => Array
+        (
+            [line] => 132
+            [file] => api\modules\v1\models\Usuario.php
+            [message] => No docblock for element 'findIdentityByAccessToken'
+        )
+
+    [113] => Array
+        (
+            [line] => 142
+            [file] => api\modules\v1\models\Usuario.php
+            [message] => No docblock for element 'getUsername'
+        )
+
+    [114] => Array
+        (
+            [line] => 146
+            [file] => api\modules\v1\models\Usuario.php
+            [message] => No docblock for element 'getAuthKey'
+        )
+
+    [115] => Array
+        (
+            [line] => 151
+            [file] => api\modules\v1\models\Usuario.php
+            [message] => No docblock for element 'validateAuthKey'
+        )
+
+    [116] => Array
+        (
+            [line] => 156
+            [file] => api\modules\v1\models\Usuario.php
+            [message] => No docblock for element 'validatePassword'
+        )
+
+    [117] => Array
+        (
+            [line] => 161
+            [file] => api\modules\v1\models\Usuario.php
+            [message] => No docblock for element 'findByUsername'
+        )
+
+)

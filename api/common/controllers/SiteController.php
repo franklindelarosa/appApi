@@ -39,8 +39,6 @@ class SiteController extends Controller
                 'login' => ['post'],
                 'registrar-perfil' => ['post'],
                 'informacion-jugador' => ['post'],
-                'reenviar-correo' => ['post'],
-                'reestablecer-contrasena' => ['post'],
             ],
         ];
         return $behaviors;
@@ -157,12 +155,11 @@ class SiteController extends Controller
     //sistema. Regresa status = 'ok' y el accessToken si existe, de lo contrario status = 'bad'
     public function actionLogin()
     {//En el local se guardó el accessToken como _chrome-rel-back
-        $sql = "SELECT correo, accessToken, id_usuario, estado FROM usuarios WHERE correo = :correo AND contrasena = :contrasena AND (estado = :estado OR estado = :estado2)";
+        $sql = "SELECT accessToken, id_usuario FROM usuarios WHERE correo = :correo AND contrasena = :contrasena AND estado = :estado";
         $query = Yii::$app->db->createCommand($sql)
         ->bindValue(':correo', $_POST['correo'])
         ->bindValue(':contrasena', sha1($_POST['contrasena']))
-        ->bindValue(':estado', Estados::USUARIO_ACTIVO)
-        ->bindValue(':estado2', Estados::USUARIO_SIN_VERIFICAR);
+        ->bindValue(':estado', 4);
         $total = $query->query()->getRowCount();
         $access = $query->query();
         if($total > 0){
@@ -181,7 +178,7 @@ class SiteController extends Controller
             $model = Usuario::find()->where("contrasena = sha1(md5('".$_POST['contrasena']."8888'))")->one();
             if($model !== null){
                 if($model->estado === Estados::USUARIO_ACTIVO){
-                    return ['status' => 'ok', 'key' => $model->accessToken, 'id' => $model->id_usuario, 'correo' => false];
+                    return ['status' => 'ok', 'key' => $model->accessToken, 'id' => $model->id_usuario];
                 }
             }
             if(!isset($_POST['telefono'])){
@@ -207,11 +204,8 @@ class SiteController extends Controller
                 $model->contrasena = sha1(md5($_POST['contrasena'].'8888'));
                 $file = file($_POST['foto']);
                 file_put_contents($_SERVER['DOCUMENT_ROOT'].Yii::$app->request->baseUrl.'/fotos/'.$model->foto, $file);
-                $correo = false;
             }else{
                 $model->contrasena = sha1($_POST['contrasena']);
-                $model->estado = Estados::USUARIO_SIN_VERIFICAR;
-                $correo = true;
             }
             if(isset($_POST['posicion']) && $_POST['posicion'] !== ''){
                 $model->id_posicion = $_POST['posicion'];
@@ -223,10 +217,7 @@ class SiteController extends Controller
             if($model->save()){
                 $role = Yii::$app->authManager->getRole($model->perfil);
                 Yii::$app->authManager->assign($role, $model->id_usuario);
-                if($correo){
-                    $this->enviarCorreoVerificacion($_POST['correo'], $model->accessToken);
-                }
-                return ['status' => 'ok', 'key' => $model->accessToken, 'id' => $model->id_usuario, 'correo' => $correo];
+                return ['status' => 'ok', 'key' => $model->accessToken, 'id' => $model->id_usuario];
             }else{
                 if(isset($_POST['foto'])){
                     unlink($_SERVER['DOCUMENT_ROOT'].Yii::$app->request->baseUrl.'/fotos/'.$nombre_foto);
@@ -251,16 +242,12 @@ class SiteController extends Controller
                 $model->foto = 'http'.$nombre_foto;
                 $file = file($_POST['foto']);
                 file_put_contents($_SERVER['DOCUMENT_ROOT'].Yii::$app->request->baseUrl.'/fotos/'.$model->foto, $file);
-                $model->estado = Estados::USUARIO_ACTIVO;
-                $correo = false;
             }else{
                 $model->contrasena = sha1($_POST['contrasena']);
                 if($model->foto !== 'default.jpg'){
                     unlink($_SERVER['DOCUMENT_ROOT'].Yii::$app->request->baseUrl.'/fotos/'.$model->foto);
                 }
                 $model->foto = 'default.jpg';
-                $model->estado = Estados::USUARIO_SIN_VERIFICAR;
-                $correo = true;
             }
             if(isset($_POST['posicion'])){
                 $model->id_posicion === '' ? $model->id_posicion = 1 : $model->id_posicion = $_POST['posicion'];
@@ -272,11 +259,9 @@ class SiteController extends Controller
             }else{
                 $model->pierna_habil = NULL;
             }
+            $model->estado = Estados::USUARIO_ACTIVO;
             if($model->save()){
-                if($correo){
-                    $this->enviarCorreoVerificacion($_POST['correo'], $model->accessToken);
-                }
-                return ['status' => 'ok', 'key' => $model->accessToken, 'id' => $model->id_usuario, 'correo' => $correo];
+                return ['status' => 'ok', 'key' => $model->accessToken, 'id' => $model->id_usuario];
             }else{
                 return ['status' => 'bad', 'mensaje' => 'Hubo un error restaurando la cuenta, vuelve a intentarlo'];
             }
@@ -287,12 +272,8 @@ class SiteController extends Controller
         }
     }
 
-    /**
-    *Esta acción permite consultar la información de un jugador (usuario/invitado)
-    *@param integer $id
-    *@param string $entidad
-    *@return \yii\app\response\Json devuelve status = 'ok' y el data con el tipo de etidad recibido, si no se pudo status = 'bad'
-    */
+    //Esta acción permite consultar la información de un jugador (usuario/invitado), devuelve status = 'ok' y el data
+    //con el tipo de etidad recibido, si no se pudo status = 'bad'
     public function actionInformacionJugador()
     {
         \Yii::$app->response->format = 'json';
@@ -304,74 +285,6 @@ class SiteController extends Controller
             $jugador = \Yii::$app->db->createCommand($sql)->queryOne();
         }
         return ['status' => 'ok', 'data' => $jugador, 'entidad' => $_POST['entidad']];
-    }
-
-    /**
-    * Esta función envia un correo de verificación a un usuario acabado de registrar.
-    * Es usada por actionReenviarCorreo().
-    * @param string $vista La vista utilizada para el correo.
-    * @param string $destinatario Correo electrónico del usuario que se registró.
-    * @param string $token El accessToken que utliza el sistema para activar la cuenta.
-    * @return boolean resultado Si se envió o no el correo de verificación de cuenta.
-    */
-    protected function enviarCorreoVerificacion($vista, $destinatario, $token){
-        return Yii::$app->mailer->compose($vista, ['accessToken' => $token])
-        ->setTo($destinatario)
-        ->setFrom(['admin@futbolcracks.co' => 'Administrador de FutbolCracks'])
-        ->setSubject('FutbolCracks')
-        ->send();
-    }
-
-    /**
-    *Esta acción permite reenviar el correo de verificación de cuenta a un usuario
-    *@param string $destinatario Correo electrónico del usuario que se registró.
-    *@param string $token El accessToken que utliza el sistema para activar la cuenta.
-    *@return \yii\app\response\Json devuelve status = 'ok' si se envía, si no se pudo enviar status = 'bad'
-    */
-    public function actionReenviarCorreo()
-    {
-        \Yii::$app->response->format = 'json';
-        $model = Usuario::find()->where("correo = '".$_POST['correo']."'")->one();
-        if($model !== null){
-            if($this->enviarCorreoVerificacion("@app/api/modules/v1/views/mail/verification", $_POST['correo'], $model->accessToken)){
-                return ['status' => 'ok', 'mensaje' => 'Se ha enviado un correo de verificación para completar el registro'];
-            }else{
-                return ['status' => 'bad', 'mensaje' => 'No se pudo reenviar tu correo de verificación'];
-            }
-        }else{
-            return ['status' => 'bad', 'mensaje' => 'No se encontró el usuario con el correo especificado'];
-        }
-    }
-
-    /**
-    *Esta acción permite enviar un correo para el reestablecimiento de la contraseña
-    *@param string $destinatario Correo electrónico del usuario que se registró.
-    *@param string $token El accessToken que utliza el sistema para reestablecer la contraseña.
-    *@return \yii\app\response\Json devuelve status = 'ok' si se envía, si no se pudo enviar status = 'bad'
-    */
-    public function actionReestablecerContrasena()
-    {
-        \Yii::$app->response->format = 'json';
-        $model = Usuario::find()->where("correo = '".$_POST['correo']."'")->one();
-        return $model;
-        if($model !== null){
-            if(strpos((substr($model->foto, 0, 4)), 'http') !== false){
-                return ['status' => 'bad', 'mensaje' => 'Tu cuenta está asociada con facebook, intenta ingresar con el botón de inicio con facebook'];
-            }else{
-                $model->authPass = md5(time().rand()).sha1(time().rand());
-                if($model->save()){
-                    if($this->enviarCorreoVerificacion("@app/api/modules/v1/views/mail/reestablish", $_POST['correo'], $model->authPass)){
-                        return ['status' => 'ok', 'mensaje' => 'El correo de reestablecimiento de contraseña ha sido enviado exitosamente'];
-                    }else{
-                        return ['status' => 'bad', 'mensaje' => 'No se pudo enviar el correo de reestablecimiento de contraseña'];
-                    }
-                }else{
-                    return ['status' => 'bad', 'mensaje' => 'Error generando un código de autorización para el reestablecimiento'];
-                }
-            }
-        }else{
-            return ['status' => 'bad', 'mensaje' => 'No existe ningún usuario con el correo especificado'];
-        }
     }
 
     //Esta función busca a un usuario por la primary key ($id)

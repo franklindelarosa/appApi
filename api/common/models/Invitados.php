@@ -1,6 +1,6 @@
 <?php
 
-namespace app\models;
+namespace app\api\modules\v1\models;
 
 use Yii;
 
@@ -8,10 +8,14 @@ use Yii;
  * This is the model class for table "invitados".
  *
  * @property integer $id_invitado
- * @property string $nombre
+ * @property string $nombres
+ * @property string $apellidos
  * @property string $telefono
  * @property string $sexo
  * @property string $correo
+ * @property integer $id_posicion
+ * @property string $pierna_habil
+ * @property string $fecha_nacimiento
  *
  * @property Invitaciones[] $invitaciones
  */
@@ -31,10 +35,13 @@ class Invitados extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['nombre', 'telefono', 'sexo', 'correo'], 'required'],
-            [['nombre', 'correo'], 'string', 'max' => 45],
+            [['nombres', 'apellidos', 'telefono', 'sexo', 'correo'], 'required'],
+            [['id_posicion'], 'integer'],
+            [['fecha_nacimiento'], 'safe'],
+            [['nombres', 'apellidos', 'correo'], 'string', 'max' => 45],
             [['telefono'], 'string', 'max' => 20],
-            [['sexo'], 'string', 'max' => 1]
+            [['sexo'], 'string', 'max' => 1],
+            [['pierna_habil'], 'string', 'max' => 15]
         ];
     }
 
@@ -45,10 +52,14 @@ class Invitados extends \yii\db\ActiveRecord
     {
         return [
             'id_invitado' => 'Id Invitado',
-            'nombre' => 'Nombre',
+            'nombres' => 'Nombres',
+            'apellidos' => 'Apellidos',
             'telefono' => 'Telefono',
             'sexo' => 'Sexo',
             'correo' => 'Correo',
+            'id_posicion' => 'Id Posición',
+            'pierna_habil' => 'Pierna Hábil',
+            'fecha_nacimiento' => 'Fecha Nacimiento',
         ];
     }
 
