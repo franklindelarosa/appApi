@@ -224,7 +224,7 @@ class SiteController extends Controller
                 $role = Yii::$app->authManager->getRole($model->perfil);
                 Yii::$app->authManager->assign($role, $model->id_usuario);
                 if($correo){
-                    $this->enviarCorreoVerificacion($_POST['correo'], $model->accessToken);
+                    $this->enviarCorreoVerificacion("@app/api/modules/v1/views/mail/verification", $_POST['correo'], $model->accessToken);
                 }
                 return ['status' => 'ok', 'key' => $model->accessToken, 'id' => $model->id_usuario, 'correo' => $correo];
             }else{
